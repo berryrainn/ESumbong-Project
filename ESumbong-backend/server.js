@@ -1,23 +1,36 @@
 const express = require('express');
 const mysql = require('mysql2');
 const path = require('path'); // Used to handle file paths
+const multer = require('multer'); // For handling file uploads (not fully implemented yet)
 
 // Initialize Express app
 const app = express();
 const port = 3000;
 
-// --- 1. Server Configuration ---
+
 // These lines let your server read JSON and form data from the frontend
 app.use(express.json()); 
 app.use(express.urlencoded({ extended: true })); 
 
-// --- 2. Serve Your Frontend ---
+
 // This tells Express to serve all static files (HTML, CSS, JS, Images)
 // from the '../ESumbong-frontend' directory.
 app.use(express.static(path.join(__dirname, '..', 'ESumbong-frontend')));
 
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const uploadPath = path.join(__dirname, '..', 'ESumbong-frontend', 'uploads');
+        cb(null, uploadPath);
+    },
+    filename: (req, file, cb) => {
+        const uniqueName =  Date.now() + '-' + file.originalname;
+        cb(null, uniqueName);
+    }
+});
 
-// --- 3. Database Connection ---
+const upload = multer({ storage: storage });
+
+// --- Database Connection ---
 // Update with your MySQL username and password
 const db = mysql.createConnection({
     host: 'localhost',
@@ -36,11 +49,13 @@ db.connect(err => {
 });
 
 
-// --- 4. API Endpoints ---
+// --- API Endpoints ---
 // This endpoint listens for 'POST' requests to '/api/submit-report'
-app.post('/api/submit-report', (req, res) => {
+app.post('/api/submit-report', upload.fields([
+    { name: 'barangayIdFile', maxCount: 2 }, 
+    { name: 'evidenceFiles', maxCount: 7 }   
+]), (req, res) => {
     
-    // 'req.body' contains the data sent from your frontend form
     const { 
         trackingId, 
         fullname, 
@@ -52,15 +67,17 @@ app.post('/api/submit-report', (req, res) => {
         lng
     } = req.body;
 
-    // TODO: We will add file upload logic (Multer) here later.
-    // For now, we use placeholder paths.
-    const barangayIdPath = fullname ? "uploads/id_placeholder.jpg" : null;
-    const evidencePath = "uploads/evidence_placeholder.jpg";
+    const barangayIdPath = req.files.barangayIdFile 
+        ? req.files.barangayIdFile.map(file => `uploads/${file.filename}`).join(',') 
+        : null;
+        
+    const evidencePath = req.files.evidenceFiles
+        ? req.files.evidenceFiles.map(file => `uploads/${file.filename}`).join(',')
+        : null;
 
-    // This is the SQL to call the procedure you created
+    // Call the stored procedure
     const sql = `CALL sp_SubmitReport(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     
-    // The values MUST be in the same order as the procedure's parameters
     const values = [
         trackingId, 
         fullname, 
@@ -74,22 +91,18 @@ app.post('/api/submit-report', (req, res) => {
         evidencePath
     ];
 
-    // Execute the query
     db.query(sql, values, (err, result) => {
         if (err) {
             console.error('Error executing stored procedure:', err);
-            // Send an error message back to the frontend
             return res.status(500).json({ success: false, message: 'Database error' });
         }
         
-        // Send a success message back to the frontend
         res.status(200).json({ success: true, message: 'Report submitted!', trackingId: trackingId });
     });
 });
 
 
-// --- 5. Start the Server ---
-// This starts the server and keeps it running
+// --- Start the Server ---
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
     console.log(`Your frontend should be visible at http://localhost:${port}`);

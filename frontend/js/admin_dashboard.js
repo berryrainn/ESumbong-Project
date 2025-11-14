@@ -86,6 +86,8 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchReports();
   fetchSuggestions();
   fetchDashboardStats();
+  fetchAnnouncements();
+  fetchNews();
 });
 
 
@@ -234,7 +236,7 @@ async function fetchDashboardStats() {
 }
 
 // =======================
-// ANNOUNCEMENT SECTION
+// ANNOUNCEMENT SECTION 
 // =======================
 const addAnnouncementBtn = document.getElementById('addAnnouncementBtn');
 const announcementForm = document.getElementById('announcementForm');
@@ -244,150 +246,151 @@ const announcementDescription = document.getElementById('announcementDescription
 const announcementsGrid = document.getElementById('announcementsGrid');
 
 let editingCard = null; // Track the card being edited
+let editingCardId = null; // Track the ID of the card being edited
 
 // Show/hide announcement form
 addAnnouncementBtn.addEventListener('click', () => {
-  announcementForm.classList.toggle('hidden');
-  if (!announcementForm.classList.contains('hidden')) {
-    announcementTitle.focus();
-    uploadAnnouncementBtn.textContent = 'Upload Announcement';
-    editingCard = null;
-  }
-});
-
-// Format date 
-function getFormattedDate() {
-  const today = new Date();
-  const options = { year: 'numeric', month: 'short', day: 'numeric' };
-  return today.toLocaleDateString('en-US', options);
-}
-
-// Create announcement card
-function createAnnouncementCard(title, description, date) {
-  const card = document.createElement('div');
-  card.className = 'bg-white shadow-md rounded-xl p-6 hover:shadow-xl transition flex flex-col justify-between h-full';
-  card.innerHTML = `
-    <h4 class="text-xl font-semibold text-green-800 mb-2">${title}</h4>
-    <p class="text-gray-600 mb-4 flex-grow">${description}</p>
-    <div class="flex justify-between items-center border-t pt-2 bg-gray-50 mt-auto">
-      <p class="text-sm text-gray-500">Posted: ${date}</p>
-      <div class="space-x-2">
-        <button class="editBtn bg-green-500 text-white px-3 py-1 rounded hover:bg-yellow-500 transition text-sm">Edit</button>
-        <button class="deleteBtn bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition text-sm">Delete</button>
-      </div>
-    </div>
-  `;
-
-  // Edit button
-  card.querySelector('.editBtn').addEventListener('click', () => {
-    editingCard = card;
-    announcementTitle.value = title;
-    announcementDescription.value = description;
-    announcementForm.classList.remove('hidden');
-    uploadAnnouncementBtn.textContent = 'Save Changes';
-    announcementTitle.focus();
-  });
-
-  // Delete button
-  card.querySelector('.deleteBtn').addEventListener('click', () => {
-    if (confirm('Are you sure you want to delete this announcement?')) {
-      card.remove();
+    announcementForm.classList.toggle('hidden');
+    if (!announcementForm.classList.contains('hidden')) {
+        announcementTitle.focus();
+        uploadAnnouncementBtn.textContent = 'Upload Announcement';
+        editingCard = null; // Clear editing state
+        editingCardId = null;
     }
-  });
-
-  return card;
-}
-
-// Upload or save announcement
-uploadAnnouncementBtn.addEventListener('click', () => {
-  const title = announcementTitle.value.trim();
-  const description = announcementDescription.value.trim();
-
-  if (!title || !description) {
-    alert('Please enter both title and description.');
-    return;
-  }
-
-  const date = getFormattedDate();
-
-  if (editingCard) {
-    // Save changes
-    editingCard.querySelector('h4').textContent = title;
-    editingCard.querySelector('p').textContent = description;
-    editingCard.querySelector('.text-gray-500').textContent = `Posted: ${date}`;
-    editingCard = null;
-    uploadAnnouncementBtn.textContent = 'Upload Announcement';
-  } else {
-    // Add new card
-    const card = createAnnouncementCard(title, description, date);
-    announcementsGrid.prepend(card);
-  }
-
-  // Clear form
-  announcementTitle.value = '';
-  announcementDescription.value = '';
-  announcementForm.classList.add('hidden');
 });
 
-// Edit and Delete for Existing Announcements
-function activateExistingAnnouncementButtons() {
-  document.querySelectorAll("#announcementsGrid .editBtn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const card = btn.closest(".bg-white");
-      const titleE1 = card.querySelector("h4");
-      const descE1 = card.querySelector(".text-gray-600");
-
-      editingCard = card;
-      announcementTitle.value = titleE1.textContent;
-      announcementDescription.value = descE1.textContent;
-
-      announcementForm.classList.remove("hidden");
-      uploadAnnouncementBtn.textContent = "Save Changes"
-      announcementTitle.focus();
-    });
-  });
-
-  document.querySelectorAll("#announcementsGrid .deleteBtn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const card = btn.closest(".bg-white");
-      if (confirm("Are you sure you want to delete this announcement?")) {
-        card.remove();
-      }
-    });
-  });
+async function fetchAnnouncements() {
+    try {
+        const response = await fetch('/api/announcements');
+        const data = await response.json();
+        if (data.success) {
+            renderAnnouncements(data.announcements);
+        } else {
+            console.error('Failed to fetch announcements:', data.message);
+        }
+    } catch (err) {
+        console.error('Network error fetching announcements:', err);
+    }
 }
 
-activateExistingAnnouncementButtons();
+// 2. RENDER all announcements to the grid
+function renderAnnouncements(announcements) {
+    if (!announcementsGrid) return;
+    announcementsGrid.innerHTML = ''; // Clear the grid
+
+    // Delete the static cards you had in your HTML
+    const staticCards = document.querySelectorAll('#announcementsGrid .bg-white[shadow-md]');
+    staticCards.forEach(card => card.remove());
+
+    if (announcements.length === 0) {
+        announcementsGrid.innerHTML = '<p class="text-gray-500">No announcements yet.</p>';
+        return;
+    }
+
+    announcements.forEach(ann => {
+        const card = createAnnouncementCard(ann);
+        announcementsGrid.appendChild(card);
+    });
+}
+
+// 3. CREATE announcement card
+function createAnnouncementCard(ann) {
+    const card = document.createElement('div');
+    card.className = 'bg-white shadow-md rounded-xl p-6 hover:shadow-xl transition flex flex-col justify-between h-full';
+    card.dataset.id = ann.id; 
+
+    card.innerHTML = `
+        <h4 class="text-xl font-semibold text-green-800 mb-2">${ann.title}</h4>
+        <p class="text-gray-600 mb-4 flex-grow">${ann.description}</p>
+        <div class="flex justify-between items-center border-t pt-2 bg-gray-50 mt-auto">
+        <p class="text-sm text-gray-500">Posted: ${ann.date}</p>
+        <div class="space-x-2">
+            <button class="editBtn bg-green-500 text-white px-3 py-1 rounded hover:bg-yellow-500 transition text-sm">Edit</button>
+            <button class="deleteBtn bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition text-sm">Delete</button>
+        </div>
+        </div>
+    `;
+
+    // Edit button
+    card.querySelector('.editBtn').addEventListener('click', () => {
+        editingCard = card;
+        editingCardId = ann.id;
+        announcementTitle.value = ann.title;
+        announcementDescription.value = ann.description;
+        announcementForm.classList.remove('hidden');
+        uploadAnnouncementBtn.textContent = 'Save Changes';
+        announcementTitle.focus();
+    });
+
+    // Delete button
+    card.querySelector('.deleteBtn').addEventListener('click', async () => {
+        if (confirm('Are you sure you want to delete this announcement?')) {
+            try {
+                const response = await fetch(`/api/announcements/${ann.id}`, { method: 'DELETE' });
+                const result = await response.json();
+                if (result.success) {
+                    card.remove(); 
+                } else {
+                    alert('Error deleting: ' + result.message);
+                }
+            } catch (err) {
+                alert('Network error deleting announcement.');
+            }
+        }
+    });
+
+    return card;
+}
+
+uploadAnnouncementBtn.addEventListener('click', async () => {
+    const title = announcementTitle.value.trim();
+    const description = announcementDescription.value.trim();
+
+    if (!title || !description) {
+        alert('Please enter both title and description.');
+        return;
+    }
+
+    try {
+        let response;
+        if (editingCardId) {
+            // UPDATE (PATCH request)
+            response = await fetch(`/api/announcements/${editingCardId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, description })
+            });
+        } else {
+            // CREATE (POST request)
+            response = await fetch('/api/announcements', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, description })
+            });
+        }
+
+        const result = await response.json();
+
+        if (result.success) {
+            announcementTitle.value = '';
+            announcementDescription.value = '';
+            announcementForm.classList.add('hidden');
+            editingCard = null;
+            editingCardId = null;
+
+            fetchAnnouncements();
+        } else {
+            alert('Error saving announcement: ' + result.message);
+        }
+    } catch (err) {
+        alert('Network error saving announcement.');
+    }
+});
+
 
 // =======================
-// NEWS SECTION
+// NEWS SECTION (NEW)
 // =======================
-// Select all existing news cards
-document.querySelectorAll('.newsCard').forEach(card => {
-  const editBtn = card.querySelector('.editNewsBtn');
-  const deleteBtn = card.querySelector('.deleteNewsBtn');
-
-  editBtn.addEventListener('click', e => {
-    e.preventDefault(); // Prevent navigation
-    const innerDiv = card.querySelector('div');
-    editingNews = card;
-    newsTitle.value = innerDiv.querySelector('h3').textContent;
-    newsDescription.value = innerDiv.querySelector('p').textContent;
-    newsImage.value = innerDiv.querySelector('img').src;
-    newsLink.value = card.href !== '#' ? card.href : '';
-    newsForm.classList.remove('hidden');
-    uploadNewsBtn.textContent = 'Save Changes';
-    newsTitle.focus();
-  });
-
-  deleteBtn.addEventListener('click', e => {
-    e.preventDefault(); // Prevent navigation
-    if (confirm('Are you sure you want to delete this news item?')) {
-      card.remove();
-    }
-  });
-});
-
 const addNewsBtn = document.getElementById('addNewsBtn');
 const newsForm = document.getElementById('newsForm');
 const uploadNewsBtn = document.getElementById('uploadNewsBtn');
@@ -397,101 +400,167 @@ const newsLink = document.getElementById('newsLink');
 const newsImage = document.getElementById('newsImage');
 const newsCarousel = document.getElementById('newsCarousel');
 
-let editingNews = null;
+let editingNews = null; // Track the card being edited
+let editingNewsId = null; // Track the ID
 
 // Show/hide news form
 addNewsBtn.addEventListener('click', () => {
-  newsForm.classList.toggle('hidden');
-  if (!newsForm.classList.contains('hidden')) {
-    newsTitle.focus();
-    uploadNewsBtn.textContent = 'Upload News';
-    editingNews = null;
-  }
+    newsForm.classList.toggle('hidden');
+    if (!newsForm.classList.contains('hidden')) {
+        newsTitle.focus();
+        uploadNewsBtn.textContent = 'Upload News';
+        editingNews = null;
+        editingNewsId = null;
+    }
 });
 
-// Create news card
-function createNewsCard(title, description, image, link, date) {
-  const card = document.createElement('a');
-  card.href = link || '#';
-  card.target = '_blank';
-  card.className = 'flex-shrink-0 w-full md:w-1/3 p-3';
-
-  card.innerHTML = `
-    <div class="bg-white shadow-md rounded-xl overflow-hidden flex flex-col h-full hover:shadow-lg transition relative">
-      <img src="${image}" alt="${title}" class="w-full h-48 object-cover">
-      <div class="p-5 flex flex-col flex-grow">
-        <h3 class="text-lg font-semibold text-green-800 mb-2">${title}</h3>
-        <p class="text-gray-600 text-sm mb-4 flex-grow">${description}</p>
-      </div>
-      <div class="border-t px-5 py-3 bg-gray-50 flex justify-between items-center">
-        <p class="text-sm text-gray-500">Posted: ${date}</p>
-        <div class="space-x-2">
-          <button class="editNewsBtn bg-green-500 text-white px-2 py-1 rounded hover:bg-yellow-500 transition text-xs">Edit</button>
-          <button class="deleteNewsBtn bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 transition text-xs">Delete</button>
-        </div>
-      </div>
-    </div>
-  `;
-
-  // Edit
-  card.querySelector('.editNewsBtn').addEventListener('click', (e) => {
-    e.preventDefault();
-    editingNews = card;
-    newsTitle.value = title;
-    newsDescription.value = description;
-    newsImage.value = image;
-    newsLink.value = link;
-    newsForm.classList.remove('hidden');
-    uploadNewsBtn.textContent = 'Save Changes';
-    newsTitle.focus();
-  });
-
-  // Delete
-  card.querySelector('.deleteNewsBtn').addEventListener('click', (e) => {
-    e.preventDefault();
-    if (confirm('Are you sure you want to delete this news?')) {
-      card.remove();
+// 1. FETCH all news from the API
+async function fetchNews() {
+    try {
+        const response = await fetch('/api/news');
+        const data = await response.json();
+        if (data.success) {
+            renderNews(data.news);
+        } else {
+            console.error('Failed to fetch news:', data.message);
+        }
+    } catch (err) {
+        console.error('Network error fetching news:', err);
     }
-  });
-
-  return card;
 }
 
-// Upload or save news
-uploadNewsBtn.addEventListener('click', () => {
-  const title = newsTitle.value.trim();
-  const description = newsDescription.value.trim();
-  const image = newsImage.value.trim();
-  const link = newsLink.value.trim();
-  const date = getFormattedDate();
+// 2. RENDER all news to the carousel
+function renderNews(newsItems) {
+    if (!newsCarousel) return;
+    newsCarousel.innerHTML = ''; // Clear the carousel
 
-  if (!title || !description || !image) {
-    alert('Please enter title, description, and image URL.');
-    return;
-  }
+    // Delete the static cards you had in your HTML
+    const staticCards = document.querySelectorAll('#newsCarousel a.flex-shrink-0');
+    staticCards.forEach(card => card.remove());
 
-  if (editingNews) {
-    // Save changes
-    const innerDiv = editingNews.querySelector('div');
-    innerDiv.querySelector('h3').textContent = title;
-    innerDiv.querySelector('p').textContent = description;
-    innerDiv.querySelector('img').src = image;
-    editingNews.href = link || '#';
-    innerDiv.querySelector('.text-gray-500').textContent = `Posted: ${date}`;
-    editingNews = null;
-    uploadNewsBtn.textContent = 'Upload News';
-  } else {
-    // Add new news card
-    const card = createNewsCard(title, description, image, link, date);
-    newsCarousel.prepend(card);
-  }
+    if (newsItems.length === 0) {
+        newsCarousel.innerHTML = '<p class="p-4 text-gray-500">No news items yet.</p>';
+        return;
+    }
 
-  // Clear form
-  newsTitle.value = '';
-  newsDescription.value = '';
-  newsImage.value = '';
-  newsLink.value = '';
-  newsForm.classList.add('hidden');
+    newsItems.forEach(item => {
+        const card = createNewsCard(item);
+        newsCarousel.appendChild(card);
+    });
+}
+
+// 3. CREATE a single news card
+function createNewsCard(item) {
+    const card = document.createElement('a');
+    card.href = item.linkUrl || '#';
+    card.target = '_blank';
+    card.className = 'flex-shrink-0 w-full md:w-1/3 p-3 newsCard';
+    card.dataset.id = item.id;
+
+    card.innerHTML = `
+        <div class="bg-white shadow-md rounded-xl overflow-hidden flex flex-col h-full hover:shadow-lg transition relative">
+        <img src="${item.imageUrl}" alt="${item.title}" class="w-full h-48 object-cover">
+        <div class="p-5 flex flex-col flex-grow">
+            <h3 class="text-lg font-semibold text-green-800 mb-2">${item.title}</h3>
+            <p class="text-gray-600 text-sm mb-4 flex-grow">${item.description}</p>
+        </div>
+        <div class="border-t px-5 py-3 bg-gray-50 flex justify-between items-center">
+            <p class="text-sm text-gray-500">Posted: ${item.date}</p>
+            <div class="space-x-2">
+            <button class="editNewsBtn bg-green-500 text-white px-2 py-1 rounded hover:bg-yellow-500 transition text-xs">Edit</button>
+            <button class="deleteNewsBtn bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 transition text-xs">Delete</button>
+            </div>
+        </div>
+        </div>
+    `;
+
+    // Edit
+    card.querySelector('.editNewsBtn').addEventListener('click', (e) => {
+        e.preventDefault();
+        editingNews = card;
+        editingNewsId = item.id;
+        newsTitle.value = item.title;
+        newsDescription.value = item.description;
+        newsImage.value = item.imageUrl;
+        newsLink.value = item.linkUrl;
+        newsForm.classList.remove('hidden');
+        uploadNewsBtn.textContent = 'Save Changes';
+        newsTitle.focus();
+    });
+
+    // Delete
+    card.querySelector('.deleteNewsBtn').addEventListener('click', async (e) => {
+        e.preventDefault();
+        if (confirm('Are you sure you want to delete this news?')) {
+            try {
+                const response = await fetch(`/api/news/${item.id}`, { method: 'DELETE' });
+                const result = await response.json();
+                if (result.success) {
+                    card.remove(); // Remove card from UI
+                } else {
+                    alert('Error deleting: ' + result.message);
+                }
+            } catch (err) {
+                alert('Network error deleting news.');
+            }
+        }
+    });
+
+    return card;
+}
+
+// 4. UPLOAD (Create or Update) news item
+uploadNewsBtn.addEventListener('click', async () => {
+    const title = newsTitle.value.trim();
+    const description = newsDescription.value.trim();
+    const image = newsImage.value.trim();
+    const link = newsLink.value.trim();
+
+    if (!title || !description || !image) {
+        alert('Please enter title, description, and image URL.');
+        return;
+    }
+
+    const data = { title, description, image, link };
+
+    try {
+        let response;
+        if (editingNewsId) {
+            // UPDATE (PATCH request)
+            response = await fetch(`/api/news/${editingNewsId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+        } else {
+            // CREATE (POST request)
+            response = await fetch('/api/news', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+        }
+
+        const result = await response.json();
+
+        if (result.success) {
+            // Reset form
+            newsTitle.value = '';
+            newsDescription.value = '';
+            newsImage.value = '';
+            newsLink.value = '';
+            newsForm.classList.add('hidden');
+            editingNews = null;
+            editingNewsId = null;
+
+            // Refresh the list from the server
+            fetchNews();
+        } else {
+            alert('Error saving news: ' + result.message);
+        }
+    } catch (err) {
+        alert('Network error saving news.');
+    }
 });
 
 
@@ -503,7 +572,6 @@ let filteredReports = []; // This will hold the *currently visible* data
 
 const tableBody = document.getElementById("reportTableBody");
 
-// NEW FUNCTION: Fetch reports from the server
 async function fetchReports() {
     try {
         const response = await fetch('/api/reports');

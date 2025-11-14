@@ -148,7 +148,6 @@ app.patch('/api/reports/:trackingId/status', (req, res) => {
 
 // --- SUGGESTIONS API ENDPOINTS ---
 
-// 1. POST: Submit a new suggestion
 app.post('/api/suggestions', (req, res) => {
     const { fullname, email, suggestion } = req.body;
 
@@ -164,7 +163,6 @@ app.post('/api/suggestions', (req, res) => {
     });
 });
 
-// 2. GET: Get all suggestions for admin
 app.get('/api/suggestions', (req, res) => {
     const sql = `CALL sp_GetSuggestions()`;
     
@@ -177,7 +175,6 @@ app.get('/api/suggestions', (req, res) => {
     });
 });
 
-// 3. PATCH: Mark a suggestion as read
 app.patch('/api/suggestions/:id/read', (req, res) => {
     const { id } = req.params;
     const sql = `CALL sp_MarkSuggestionAsRead(?)`;
@@ -191,7 +188,6 @@ app.patch('/api/suggestions/:id/read', (req, res) => {
     });
 });
 
-// 4. DELETE: Delete a suggestion
 app.delete('/api/suggestions/:id', (req, res) => {
     const { id } = req.params;
     const sql = `CALL sp_DeleteSuggestion(?)`;
@@ -205,7 +201,106 @@ app.delete('/api/suggestions/:id', (req, res) => {
     });
 });
 
-// --- NEW ENDPOINT: GET DASHBOARD STATS ---
+// --- ANNOUNCEMENTS API ENDPOINTS ---
+app.get('/api/announcements', (req, res) => {
+    const sql = `CALL sp_GetAnnouncements()`;
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.error('Error fetching announcements:', err);
+            return res.status(500).json({ success: false, message: 'Database error' });
+        }
+        res.status(200).json({ success: true, announcements: results[0] });
+    });
+});
+
+app.post('/api/announcements', (req, res) => {
+    const { title, description } = req.body;
+    const sql = `CALL sp_CreateAnnouncement(?, ?)`;
+    db.query(sql, [title, description], (err, results) => {
+        if (err) {
+            console.error('Error creating announcement:', err);
+            return res.status(500).json({ success: false, message: 'Database error' });
+        }
+        res.status(201).json({ success: true, newAnnouncement: results[0][0] });
+    });
+});
+
+app.patch('/api/announcements/:id', (req, res) => {
+    const { id } = req.params;
+    const { title, description } = req.body;
+    const sql = `CALL sp_UpdateAnnouncement(?, ?, ?)`;
+    db.query(sql, [id, title, description], (err, result) => {
+        if (err) {
+            console.error('Error updating announcement:', err);
+            return res.status(500).json({ success: false, message: 'Database error' });
+        }
+        res.status(200).json({ success: true, message: 'Announcement updated' });
+    });
+});
+
+app.delete('/api/announcements/:id', (req, res) => {
+    const { id } = req.params;
+    const sql = `CALL sp_DeleteAnnouncement(?)`;
+    db.query(sql, [id], (err, result) => {
+        if (err) {
+            console.error('Error deleting announcement:', err);
+            return res.status(500).json({ success: false, message: 'Database error' });
+        }
+        res.status(200).json({ success: true, message: 'Announcement deleted' });
+    });
+});
+
+// --- NEWS API ENDPOINTS ---
+app.get('/api/news', (req, res) => {
+    const sql = `CALL sp_GetNews()`;
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.error('Error fetching news:', err);
+            return res.status(500).json({ success: false, message: 'Database error' });
+        }
+        res.status(200).json({ success: true, news: results[0] });
+    });
+});
+
+app.post('/api/news', (req, res) => {
+    const { title, description, image, link } = req.body;
+    const sql = `CALL sp_CreateNews(?, ?, ?, ?)`;
+    db.query(sql, [title, description, image, link], (err, results) => {
+        if (err) {
+            console.error('Error creating news:', err);
+            return res.status(500).json({ success: false, message: 'Database error' });
+        }
+        res.status(201).json({ success: true, newNews: results[0][0] });
+    });
+});
+
+app.patch('/api/news/:id', (req, res) => {
+    const { id } = req.params;
+    const { title, description, image, link } = req.body;
+    const sql = `CALL sp_UpdateNews(?, ?, ?, ?, ?)`;
+    db.query(sql, [id, title, description, image, link], (err, result) => {
+        if (err) {
+            console.error('Error updating news:', err);
+            return res.status(500).json({ success: false, message: 'Database error' });
+        }
+        res.status(200).json({ success: true, message: 'News updated' });
+    });
+});
+
+app.delete('/api/news/:id', (req, res) => {
+    const { id } = req.params;
+    const sql = `CALL sp_DeleteNews(?)`;
+    db.query(sql, [id], (err, result) => {
+        if (err) {
+            console.error('Error deleting news:', err);
+            return res.status(500).json({ success: false, message: 'Database error' });
+        }
+        res.status(200).json({ success: true, message: 'News deleted' });
+    });
+});
+
+
+// --- DASHBOARD STATS ---
 app.get('/api/dashboard/stats', (req, res) => {
     
     const sql = `CALL sp_GetDashboardStats()`;

@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard</title>
+
+  <link rel="icon" type="image/png" href="Images/Logo.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body class="flex flex-col min-h-screen bg-gray-100">
+
+<!-- Header Starts -->
+  <header class="fixed top-0 w-full bg-green-900 text-white shadow-md py-4 px-6 flex items-center justify-between z-50">
+    <div class="flex items-center gap-4">
+      <!-- Sidebar Toggle Icon -->
+      <button id="sidebarToggle" class="text-white focus:outline-none hover:text-green-200">
+        <i class="fa-solid fa-bars text-2xl transition-all duration-300" title="Menu"></i>
+      </button>
+
+      <img src="Images/Logo.png" alt="Barangay Logo" class="w-12 h-12 rounded-full border-2 border-white">
+      <h1 class="text-2xl md:text-3xl font-bold">Admin Dashboard</h1>
+    </div>
+  </header>
+<!-- Header Ends -->
+
+
+<!-- Sidebar Starts -->
+  <aside id="sidebar"
+         class="fixed top-0 left-0 h-full w-56 bg-green-800 text-white shadow-2xl transform -translate-x-full transition-transform duration-300 z-50 flex flex-col justify-between rounded-r-2xl">
+
+         <!-- Hide Side Bar -->
+         <button id="hideSidebar" class="absolute top-4 right-4 text-white shadow-2xl hover:text-green-300">
+          <i class="fa-solid fa-arrow-left text-xl"></i>
+         </button>
+
+    <!-- Menu -->
+    <nav class="flex flex-col items-center text-green-300 space-y-3 pt-24">
+      <h2 class="text-xl font-bold mb-4 text-gray-100 tracking-wide border-b border-green-700 pb-2 w-4/5 text-center">
+        Menu
+      </h2>
+
+      <button id="btnAnnouncements" onclick="showSection('sectionAnnouncements')"
+              class="w-4/5 flex items-center justify-left gap-2 px-4 py-2 rounded-lg 
+              hover:bg-green-700 hover:scale-105 transform transition duration-200 focus:outline-none
+              disabled:bg-green-800 disabled:cursor-not-allowed disabled:opacity-70
+              disabled:hover:bg-green-800 disabled:hover:scale-100
+              disabled:border-none disabled:shadow-none disabled:text-green-500">
+        <i class="fa-solid fa-bullhorn"></i>
+        <span>Announcements</span>
+      </button>
+
+      <button id="btnCharts" onclick="showSection('sectionCharts')"
+              class="w-4/5 flex items-center justify-left gap-2 px-4 py-2 rounded-lg 
+              hover:bg-green-700 hover:scale-105 transform transition duration-200 focus:outline-none
+              disabled:bg-green-800 disabled:cursor-not-allowed disabled:opacity-70
+              disabled:hover:bg-green-800 disabled:hover:scale-100
+              disabled:border-none disabled:shadow-none disabled:text-green-500">
+        <i class="fa-solid fa-chart-column"></i>
+        <span>Charts</span>
+      </button>
+
+      <button id="btnReports" onclick="showSection('sectionReports')"
+              class="w-4/5 flex items-center justify-left gap-2 px-4 py-2 rounded-lg 
+              hover:bg-green-700 hover:scale-105 transform transition duration-200 focus:outline-none
+              disabled:bg-green-800 disabled:cursor-not-allowed disabled:opacity-70
+              disabled:hover:bg-green-800 disabled:hover:scale-100
+              disabled:border-none disabled:shadow-none disabled:text-green-500">
+        <i class="fa-solid fa-file-lines"></i>
+        <span>Reports</span>
+      </button>
+
+      <button id="btnAuditLog" onclick="showSection('sectionAuditLog')"
+              class="w-4/5 flex items-center justify-left gap-2 px-4 py-2 rounded-lg 
+              hover:bg-green-700 hover:scale-105 transform transition duration-200 focus:outline-none
+              disabled:bg-green-800 disabled:cursor-not-allowed disabled:opacity-70
+              disabled:hover:bg-green-800 disabled:hover:scale-100
+              disabled:border-none disabled:shadow-none disabled:text-green-500">
+        <i class="fa-solid fa-clipboard-list"></i>
+        <span>Audit Log</span>
+      </button>
+
+    </nav>
+
+    <!-- Account Settings -->
+    <div class="p-4 flex flex-col items-center space-y-3 pb-8">
+      <a href="admin_settings.html"
+         class="w-4/5 flex items-center text-green-300 gap-2 py-2 rounded-lg hover:bg-green-700 hover:scale-105 transform transition duration-200">
+        <i class="fa-solid fa-gear"></i>
+        <span>Account Settings</span>
+      </a>
+
+      <a href="admin_signin.html"
+         class="w-4/5 flex items-center justify-center gap-2 text-center bg-white text-green-900 font-semibold py-2 rounded-lg hover:bg-green-200 transition-all duration-200 hover:scale-105">
+        <i class="fa-solid fa-right-from-bracket"></i>
+        <span>Logout</span>
+      </a>
+    </div>
+  </aside>
+<!-- Sidebar Ends -->
+
+
+  <!-- Main Content -->
+  <main class="p-6 max-w-7xl mx-auto space-y-6 mt-24">
+
+    <!-- Welcome Section -->
+    <div class="bg-white outline outline-1 outline-gray-300 shadow-lg shadow-inner rounded-xl p-6 flex flex-col md:flex-row items-center md:justify-between gap-4">
+      <div>
+        <h2 class="text-xl font-semibold text-green-900 mb-2">Welcome, Admin!</h2>
+        <p class="text-gray-700">Manage reports, announcements, and track submitted issues efficiently.</p>
+      </div>
+      <div class="text-center md:text-right">
+        <img src="Images/Logo.png" alt="Barangay Logo" class="w-16 h-16 md:w-20 md:h-20 rounded-full mx-auto md:mx-0">
+      </div>
+    </div>
+
+<!-- Announcement Section Starts -->
+<section id="sectionAnnouncements">
+  <section class="bg-green-50 py-16 px-6">
+    <div class="max-w-7xl mx-auto">
+
+      <h2 class="text-4xl md:text-5xl font-extrabold text-center mb-10 text-green-900 tracking-tight drop-shadow-sm">
+        Barangay Announcements & News
+      </h2>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-col md:flex-row justify-center items-center gap-4 mb-10">
+        <button id="addAnnouncementBtn"
+                class="bg-green-900 text-white px-6 py-2 rounded-lg hover:bg-green-800 transition w-48 text-center">
+          Add Announcement
+        </button>
+
+        <button id="addNewsBtn"
+                class="bg-green-900 text-white px-6 py-2 rounded-lg hover:bg-green-800 transition w-48 text-center">
+          Add News
+        </button>
+      </div>
+
+      <!-- New Announcement Form -->
+      <div id="announcementForm"
+           class="hidden max-w-md mx-auto mb-12 bg-white shadow-md rounded-xl p-6 hover:shadow-xl transition">
+        <h4 class="text-xl font-semibold text-green-800 mb-4">New Announcement</h4>
+
+        <input id="announcementTitle" type="text" placeholder="Enter announcement title"
+               class="w-full border border-gray-300 rounded-lg p-3 mb-4 focus:ring-2 focus:ring-green-700 focus:outline-none">
+
+        <textarea id="announcementDescription" placeholder="Enter announcement description"
+                  class="w-full border border-gray-300 rounded-lg p-3 mb-4 focus:ring-2 focus:ring-green-700 focus:outline-none resize-none"
+                  rows="3"></textarea>
+
+        <button id="uploadAnnouncementBtn"
+                class="bg-green-900 text-white px-6 py-2 rounded-lg hover:bg-green-800 transition w-full">
+          Upload Announcement
+        </button>
+      </div>
+
+      <!-- New News Form -->
+      <div id="newsForm"
+           class="hidden max-w-md mx-auto mb-12 bg-white shadow-md rounded-xl p-6 hover:shadow-xl transition">
+        <h4 class="text-xl font-semibold text-green-800 mb-4">New News Item</h4>
+
+        <input id="newsTitle" type="text" placeholder="Enter news title"
+               class="w-full border border-gray-300 rounded-lg p-3 mb-4 focus:ring-2 focus:ring-green-700 focus:outline-none">
+
+        <textarea id="newsDescription" placeholder="Enter news description"
+                  class="w-full border border-gray-300 rounded-lg p-3 mb-4 focus:ring-2 focus:ring-green-700 focus:outline-none resize-none"
+                  rows="3"></textarea>
+
+        <input id="newsLink" type="text" placeholder="Enter link (optional)"
+               class="w-full border border-gray-300 rounded-lg p-3 mb-4 focus:ring-2 focus:ring-green-700 focus:outline-none">
+
+        <input id="newsImage" type="text" placeholder="Enter image URL"
+               class="w-full border border-gray-300 rounded-lg p-3 mb-4 focus:ring-2 focus:ring-green-700 focus:outline-none">
+
+        <button id="uploadNewsBtn"
+                class="bg-green-900 text-white px-6 py-2 rounded-lg hover:bg-green-800 transition w-full">
+          Upload News
+        </button>
+      </div>
+
+      <!-- Announcements Grid -->
+      <div id="announcementsGrid" class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+
+        <!-- Announcement 1 -->
+        <div class="bg-white shadow-md rounded-xl p-6 hover:shadow-xl transition flex flex-col justify-between h-full">
+          <h4 class="text-xl font-semibold text-green-800 mb-2">Clean-up Drive this Weekend</h4>
+          <p class="text-gray-600 mb-4 flex-grow">
+            Join our barangay clean-up drive on October 25 at 7 AM. Meeting point: Barangay Hall.
+          </p>
+          <div class="flex items-center justify-between border-t pt-3 bg-gray-50 mt-auto">
+            <p class="text-sm text-gray-500 whitespace-nowrap mr-4">Posted: Oct 18, 2025</p>
+            <div class="flex items-center gap-2">
+              <button class="editBtn bg-green-500 text-white px-3 py-1 rounded hover:bg-yellow-500 transition text-sm">Edit</button>
+              <button class="deleteBtn bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition text-sm">Delete</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Announcement 2 -->
+        <div class="bg-white shadow-md rounded-xl p-6 hover:shadow-xl transition flex flex-col justify-between h-full">
+          <h4 class="text-xl font-semibold text-green-800 mb-2">Water Interruption Notice</h4>
+          <p class="text-gray-600 mb-4 flex-grow">
+            Scheduled maintenance on October 22 from 9 AM to 4 PM. Please store enough water in advance.
+          </p>
+          <div class="flex items-center justify-between border-t pt-3 bg-gray-50 mt-auto">
+            <p class="text-sm text-gray-500 whitespace-nowrap mr-4">Posted: Oct 17, 2025</p>
+            <div class="flex items-center gap-2">
+              <button class="editBtn bg-green-500 text-white px-3 py-1 rounded hover:bg-yellow-500 transition text-sm">Edit</button>
+              <button class="deleteBtn bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition text-sm">Delete</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Announcement 3 -->
+        <div class="bg-white shadow-md rounded-xl p-6 hover:shadow-xl transition flex flex-col justify-between h-full">
+          <h4 class="text-xl font-semibold text-green-800 mb-2">Community Meeting</h4>
+          <p class="text-gray-600 mb-4 flex-grow">
+            All residents are invited to the community meeting at 5 PM, October 28, Barangay Hall.
+          </p>
+          <div class="flex items-center justify-between border-t pt-3 bg-gray-50 mt-auto">
+            <p class="text-sm text-gray-500 whitespace-nowrap mr-4">Posted: Oct 19, 2025</p>
+            <div class="flex items-center gap-2">
+              <button class="editBtn bg-green-500 text-white px-3 py-1 rounded hover:bg-yellow-500 transition text-sm">Edit</button>
+              <button class="deleteBtn bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition text-sm">Delete</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+<!-- News Carousel -->
+<div class="relative overflow-hidden">
+  <div id="newsCarousel" class="flex transition-transform duration-700 ease-in-out">
+
+    <!-- News 1 -->
+    <a href="https://www.philstar.com/headlines/2025/10/23/2481956/deped-declares-wellness-break-public-schools-oct-2730"
+       target="_blank" class="flex-shrink-0 w-full md:w-1/3 p-3 newsCard">
+      <div class="bg-white shadow-md rounded-xl overflow-hidden flex flex-col h-full hover:shadow-lg transition relative">
+        <img src="Images/deped.jpg" alt="DepEd Wellness Break" class="w-full h-48 object-cover">
+        <div class="p-5 flex flex-col flex-grow">
+          <h3 class="text-lg font-semibold text-green-800 mb-2">
+            DepEd declares 'wellness break' for public schools Oct. 27–30
+          </h3>
+          <p class="text-gray-600 text-sm mb-4 flex-grow">
+            DepEd has declared a four-day “wellness break”...
+          </p>
+        </div>
+        <div class="border-t px-5 py-3 bg-gray-50 flex justify-between items-center">
+          <p class="text-sm text-gray-500">Posted: Oct 23, 2025</p>
+          <div class="flex gap-2">
+            <button class="editNewsBtn bg-green-500 text-white px-2 py-1 rounded hover:bg-yellow-500 transition text-xs">Edit</button>
+            <button class="deleteNewsBtn bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 transition text-xs">Delete</button>
+          </div>
+        </div>
+      </div>
+    </a>
+
+    <!-- News 2 -->
+    <a href="https://www.pna.gov.ph/articles/1260968" target="_blank" class="flex-shrink-0 w-full md:w-1/3 p-3 newsCard">
+      <div class="bg-white shadow-md rounded-xl overflow-hidden flex flex-col h-full hover:shadow-lg transition relative">
+        <img src="Images/doh.jpg" alt="DOH Announcement" class="w-full h-48 object-cover">
+        <div class="p-5 flex flex-col flex-grow">
+          <h3 class="text-lg font-semibold text-green-800 mb-2">
+            DOH: No outbreak of influenza-like illnesses
+          </h3>
+          <p class="text-gray-600 text-sm mb-4 flex-grow">
+            DOH Secretary Herbosa clarified that there is no outbreak of influenza-like illnesses, noting the increase is seasonal.
+          </p>
+        </div>
+        <div class="border-t px-5 py-3 bg-gray-50 flex justify-between items-center">
+          <p class="text-sm text-gray-500">Posted: Oct 22, 2025</p>
+          <div class="flex gap-2">
+            <button class="editNewsBtn bg-green-500 text-white px-2 py-1 rounded hover:bg-yellow-500 transition text-xs">Edit</button>
+            <button class="deleteNewsBtn bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 transition text-xs">Delete</button>
+          </div>
+        </div>
+      </div>
+    </a>
+
+    <!-- News 3 -->
+    <a href="https://images.gmanews.tv/webpics/2023/10/fireworksfactory_2023-10-29_18-35-20.jpg"
+       target="_blank" class="flex-shrink-0 w-full md:w-1/3 p-3 newsCard">
+      <div class="bg-white shadow-md rounded-xl overflow-hidden flex flex-col h-full hover:shadow-lg transition relative">
+        <img src="Images/explosion.jpg" alt="Fireworks Factory Blast" class="w-full h-48 object-cover">
+        <div class="p-5 flex flex-col flex-grow">
+          <h3 class="text-lg font-semibold text-green-800 mb-2">
+            2 dead, 5 hurt in fireworks factory blast in Bulacan
+          </h3>
+          <p class="text-gray-600 text-sm mb-4 flex-grow">
+            Two people died and five were injured following an explosion in a fireworks factory in Norzagaray, Bulacan.
+          </p>
+        </div>
+        <div class="border-t px-5 py-3 bg-gray-50 flex justify-between items-center">
+          <p class="text-sm text-gray-500">Posted: Oct 21, 2025</p>
+          <div class="flex gap-2">
+            <button class="editNewsBtn bg-green-500 text-white px-2 py-1 rounded hover:bg-yellow-500 transition text-xs">Edit</button>
+            <button class="deleteNewsBtn bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 transition text-xs">Delete</button>
+          </div>
+        </div>
+      </div>
+    </a>
+
+    <!-- News 4 -->
+    <a href="https://newsinfo.inquirer.net/2129606/coa-flags-more-ghost-projects-in-bulacan-in-new-ici-report"
+       target="_blank" class="flex-shrink-0 w-full md:w-1/3 p-3 newsCard">
+      <div class="bg-white shadow-md rounded-xl overflow-hidden flex flex-col h-full hover:shadow-lg transition relative">
+        <img src="Images/coa.jpeg" alt="COA Ghost Projects" class="w-full h-48 object-cover">
+        <div class="p-5 flex flex-col flex-grow">
+          <h3 class="text-lg font-semibold text-green-800 mb-2">
+            COA flags more ghost projects in Bulacan in new ICI report
+          </h3>
+          <p class="text-gray-600 text-sm mb-4 flex-grow">
+            The Commission on Audit uncovered new fraud reports involving ghost and mismatched flood control projects in Bulacan.
+          </p>
+        </div>
+        <div class="border-t px-5 py-3 bg-gray-50 flex justify-between items-center">
+          <p class="text-sm text-gray-500">Posted: Oct 20, 2025</p>
+          <div class="flex gap-2">
+            <button class="editNewsBtn bg-green-500 text-white px-2 py-1 rounded hover:bg-yellow-500 transition text-xs">Edit</button>
+            <button class="deleteNewsBtn bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 transition text-xs">Delete</button>
+          </div>
+        </div>
+      </div>
+    </a>
+
+    <!-- News 5 -->
+    <a href="https://www.philstar.com/headlines/2025/10/24/2482202/bulacan-solon-rejects-link-discayas-flood-control-probe"
+       target="_blank" class="flex-shrink-0 w-full md:w-1/3 p-3 newsCard">
+      <div class="bg-white shadow-md rounded-xl overflow-hidden flex flex-col h-full hover:shadow-lg transition relative">
+        <img src="Images/solon.jpg" alt="Bulacan Solon" class="w-full h-48 object-cover">
+        <div class="p-5 flex flex-col flex-grow">
+          <h3 class="text-lg font-semibold text-green-800 mb-2">
+            Bulacan solon rejects link to Discayas in flood control probe
+          </h3>
+          <p class="text-gray-600 text-sm mb-4 flex-grow">
+            Rep. Salvador Pleyto rejected allegations linking him to alleged irregular flood control project transactions.
+          </p>
+        </div>
+        <div class="border-t px-5 py-3 bg-gray-50 flex justify-between items-center">
+          <p class="text-sm text-gray-500">Posted: Oct 24, 2025</p>
+          <div class="flex gap-2">
+            <button class="editNewsBtn bg-green-500 text-white px-2 py-1 rounded hover:bg-yellow-500 transition text-xs">Edit</button>
+            <button class="deleteNewsBtn bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 transition text-xs">Delete</button>
+          </div>
+        </div>
+      </div>
+    </a>
+
+    <!-- News 6 -->
+    <a href="https://philstarlife.com/news-and-views/998420-phivolcs-three-minor-eruptions-taal-volcano"
+       target="_blank" class="flex-shrink-0 w-full md:w-1/3 p-3 newsCard">
+      <div class="bg-white shadow-md rounded-xl overflow-hidden flex flex-col h-full hover:shadow-lg transition relative">
+        <img src="Images/taal.jpg" alt="Taal Volcano Eruption" class="w-full h-48 object-cover">
+        <div class="p-5 flex flex-col flex-grow">
+          <h3 class="text-lg font-semibold text-green-800 mb-2">
+            PHIVOLCS records three minor eruptions at Taal Volcano
+          </h3>
+          <p class="text-gray-600 text-sm mb-4 flex-grow">
+            PHIVOLCS reported three minor phreatomagmatic eruptions with plumes rising up to 2,100 meters above the crater.
+          </p>
+        </div>
+        <div class="border-t px-5 py-3 bg-gray-50 flex justify-between items-center">
+          <p class="text-sm text-gray-500">Posted: Oct 25, 2025</p>
+          <div class="flex gap-2">
+            <button class="editNewsBtn bg-green-500 text-white px-2 py-1 rounded hover:bg-yellow-500 transition text-xs">Edit</button>
+            <button class="deleteNewsBtn bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 transition text-xs">Delete</button>
+          </div>
+        </div>
+      </div>
+    </a>
+
+  </div>
+
+        <!-- Carousel Controls -->
+        <button id="prevBtn"
+                class="absolute left-0 top-1/2 -translate-y-1/2 bg-green-700 text-white p-3 rounded-full shadow-md hover:bg-green-800 transition z-10">
+          &#10094;
+        </button>
+        <button id="nextBtn"
+                class="absolute right-0 top-1/2 -translate-y-1/2 bg-green-700 text-white p-3 rounded-full shadow-md hover:bg-green-800 transition z-10">
+          &#10095;
+        </button>
+      </div>
+
+    </div>
+  </section>
+</section>
+<!-- Announcement Section Ends -->
+
+
+
+
+<!-- Chart Section Starts -->
+<section id="sectionCharts" class="">
+  <section class="bg-gray-100 outline-gray-300 px-6 max-w-6xl mx-auto mb-24 mt-10 bg-white rounded-2xl shadow-md p-10">
+
+    <h1 class="text-3xl md:text-4xl font-serif font-semibold text-gray-900 mb-8 text-center">
+      Reports Overview
+    </h1>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+      <!-- Bar Chart -->
+      <div class="bg-gray-50 p-6 rounded-xl shadow-md">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4 text-center">
+          Reported Issues vs Solved Issues
+        </h2>
+
+        <p class="text-center font-semibold text-gray-700">
+          Reported Issues: <span id="reportedTotal">0</span> |
+          Solved Reports: <span id="solvedTotal">0</span> |
+          Resolved Percentage: <span id="resolvedPercent">0%</span>
+        </p>
+        <canvas id="barChart" height="300"></canvas>
+      </div>
+
+      <!-- Pie Chart -->
+      <div class="bg-gray-50 p-6 rounded-xl shadow-md">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4 text-center">
+          Types of Reported Issues
+        </h2>
+        <canvas id="pieChart"></canvas>
+        <ul id="legendList" class="mt-4 space-y-2"></ul>
+      </div>
+
+    </div>
+
+  </section>
+</section>
+<!-- Chart Section Ends -->
+
+
+
+<!-- Report Section Starts -->
+<section id="sectionReports" class="hidden">
+
+  <!-- Search Input -->
+  <div class="flex justify-start mb-4">
+    <input 
+      type="text" 
+      id="searchInput"
+      placeholder="Search by name, category, status, priority, or tracking ID"
+      class="border border-gray-300 rounded-lg px-4 py-2 w-96 focus:outline-none focus:ring-2 focus:ring-green-700 shadow-sm"
+    >
+  </div>
+
+  <!-- Records Table -->
+  <div class="bg-white border border-gray-300 shadow-md rounded-xl p-6 overflow-x-auto">
+
+    <!-- Header Row -->
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xl font-semibold text-green-900">Submitted Reports</h2>
+
+      <!-- Download Dropdown -->
+      <div class="relative inline-block text-left">
+        <button 
+          id="downloadMenuBtn" 
+          class="bg-green-900 text-white px-4 py-2 rounded-lg hover:bg-green-800 transition"
+          title="Download data">Download
+        </button>
+
+        <div 
+          id="downloadMenu"
+          class="hidden absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-md z-20">
+          <button id="btnAnnouncements" onclick="downloadCSV()" class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">
+            Download CSV
+          </button>
+          <button id="btnCharts" onclick="downloadExcel()" class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">
+            Download Excel
+          </button>
+          <button id="btnReports" onclick="downloadPDF()" class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">
+            Download PDF
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <table class="min-w-full table-auto border-collapse">
+      <thead>
+        <tr class="bg-green-100 text-green-900 text-center">
+          <th class="px-4 py-2 border">Tracking ID</th>
+          <th class="px-4 py-2 border">Name</th>
+          <th class="px-4 py-2 border">Barangay ID</th>
+          <th class="px-4 py-2 border">Category</th>
+          <th class="px-4 py-2 border">Description</th>
+          <th class="px-4 py-2 border">Upload Evidence</th>
+          <th class="px-4 py-2 border">Date Submitted</th>
+          <th class="px-4 py-2 border">Status</th>
+          <th class="px-4 py-2 border">Priority</th>
+        </tr>
+      </thead>
+      
+      <tbody id="reportTableBody" class="text-gray-700">
+        <!-- JS will populate rows -->
+      </tbody>
+    </table>
+  </div>
+</section> 
+<!-- Report Section Ends -->
+
+</section> 
+
+<!-- Audit Log Section Starts -->
+<section id="sectionAuditLog" class="hidden">
+
+  <div class="flex justify-start mb-4">
+    <input 
+      type="text" 
+      id="auditLogSearchInput"
+      placeholder="Search by user, action, or description"
+      class="border border-gray-300 rounded-lg px-4 py-2 w-96 focus:outline-none focus:ring-2 focus:ring-green-700 shadow-sm"
+    >
+  </div>
+
+  <div class="bg-white border border-gray-300 shadow-md rounded-xl p-6 overflow-x-auto">
+
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xl font-semibold text-green-900">Admin Audit Log</h2>
+    </div>
+
+    <table class="min-w-full table-auto border-collapse">
+      <thead>
+        <tr class="bg-green-100 text-green-900 text-center">
+          <th class="px-4 py-2 border">Timestamp</th>
+          <th class="px-4 py-2 border">Admin User</th>
+          <th class="px-4 py-2 border">Action Type</th>
+          <th class="px-4 py-2 border">Description</th>
+        </tr>
+      </thead>
+      
+      <tbody id="auditLogTableBody" class="text-gray-700">
+        </tbody>
+    </table>
+  </div>
+</section>
+<!-- Audit Log Section Ends -->
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-green-900 text-white text-center py-6 mt-auto">
+    <p>&copy; 2025 Barangay Reporting System. All rights reserved.</p>
+  </footer>
+
+  <!-- External JS Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+  <!-- External JS File -->
+   <script src="js/logo_data.js"></script>
+  <script src="js/admin_dashboard.js"></script>
+
+</body>
+</html>

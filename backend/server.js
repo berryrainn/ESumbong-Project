@@ -2,6 +2,11 @@ const express = require('express');
 const mysql = require('mysql2');
 const path = require('path'); // Used to handle file paths
 const multer = require('multer'); // For handling file uploads (not fully implemented yet)
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+
+// --- SECRET KEY ---
+const JWT_SECRET = 'esumbong_password_secret_key_11142025';
 
 // Initialize Express app
 const app = express();
@@ -116,17 +121,13 @@ app.get('/api/reports', (req, res) => {
     });
 });
 
-// --- NEW ENDPOINT: UPDATE REPORT STATUS ---
-// We use a 'PATCH' request because we are partially updating a report
+// --- UPDATE REPORT STATUS ---
 app.patch('/api/reports/:trackingId/status', (req, res) => {
     
-    // 1. Get the trackingId from the URL parameters
     const { trackingId } = req.params;
     
-    // 2. Get the new status from the request body
     const { newStatus } = req.body;
 
-    // 3. Validate the newStatus
     if (!['Pending', 'In Progress', 'Resolved'].includes(newStatus)) {
         return res.status(400).json({ success: false, message: 'Invalid status value' });
     }
@@ -144,6 +145,49 @@ app.patch('/api/reports/:trackingId/status', (req, res) => {
     });
 });
 
+// --- ADMIN LOGIN ---
+app.post('/api/admin/login', (req, res) => {
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+        return res.status(400).json({ success: false, message: 'Username and password are required.' });
+    }
+
+    const sql = "SELECT * FROM admins WHERE username = ?";
+    
+    db.query(sql, [username], async (err, results) => {
+        if (err) {
+            console.error('Database error:', err);
+            return res.status(500).json({ success: false, message: 'Database error' });
+        }
+
+        if (results.length === 0) {
+            return res.status(401).json({ success: false, message: 'Invalid username or password' });
+        }
+
+        const admin = results[0];
+
+        try {
+            const isMatch = await bcrypt.compare(password, admin.password_hash);
+
+            if (!isMatch) {
+                return res.status(401).json({ success: false, message: 'Invalid username or password' });
+            }
+
+            const token = jwt.sign(
+                { id: admin.id, username: admin.username }, 
+                JWT_SECRET, 
+                { expiresIn: '1h' } 
+            );
+            
+            res.status(200).json({ success: true, message: 'Login successful', token: token });
+
+        } catch (error) {
+            console.error('Error comparing password:', error);
+            res.status(500).json({ success: false, message: 'Server error' });
+        }
+    });
+});
 
 // --- Start the Server Listener ---
 app.listen(port, () => {

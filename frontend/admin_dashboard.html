@@ -8,6 +8,9 @@
   <link rel="icon" type="image/png" href="Images/Logo.png">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 </head>
 
 <body class="flex flex-col min-h-screen bg-gray-100">
@@ -437,13 +440,27 @@
 <section id="sectionReports" class="hidden">
 
   <!-- Search Input -->
-  <div class="flex justify-start mb-4">
+  <div class="flex flex-col md:flex-row gap-4 mb-4">
     <input 
       type="text" 
       id="searchInput"
       placeholder="Search by name, category, status, priority, or tracking ID"
-      class="border border-gray-300 rounded-lg px-4 py-2 w-96 focus:outline-none focus:ring-2 focus:ring-green-700 shadow-sm"
+      class="border border-gray-300 rounded-lg px-4 py-2 flex-grow focus:outline-none focus:ring-2 focus:ring-green-700 shadow-sm"
     >
+    
+    <div class="flex-grow md:flex-none">
+      <label for="dateRangeFilter" class="text-sm text-gray-600 md:hidden">Filter by Date:</label>
+      <select 
+        id="dateRangeFilter"
+        class="border border-gray-300 rounded-lg px-4 py-2 w-full md:w-auto focus:outline-none focus:ring-2 focus:ring-green-700 shadow-sm"
+      >
+        <option value="all-time">All Time</option>
+        <option value="today">Today</option>
+        <option value="past-week">Past Week</option>
+        <option value="past-month">Past Month</option>
+        <option value="past-year">Past Year</option>
+      </select>
+    </div>
   </div>
 
   <!-- Records Table -->
@@ -486,6 +503,9 @@
           <th class="px-4 py-2 border">Barangay ID</th>
           <th class="px-4 py-2 border">Category</th>
           <th class="px-4 py-2 border">Description</th>
+          
+          <th class="px-4 py-2 border">Address</th>
+          
           <th class="px-4 py-2 border">Upload Evidence</th>
           <th class="px-4 py-2 border">Date Submitted</th>
           <th class="px-4 py-2 border">Status</th>
@@ -539,6 +559,30 @@
 <!-- Audit Log Section Ends -->
 
   </main>
+
+  <div id="addressModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 p-4">
+    <div class="bg-white p-6 rounded-xl shadow-lg w-full max-w-2xl">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-2xl font-semibold text-green-900">Report Location</h2>
+        <button id="closeAddressModal" class="text-gray-500 hover:text-gray-800 text-3xl">&times;</button>
+      </div>
+      
+      <p id="modalAddressText" class="text-gray-700 mb-4 text-lg"></p>
+      
+      <div id="modalMap" style="height: 400px; width: 100%;" class="rounded-lg shadow-md relative z-0"></div>
+    </div>
+  </div>
+
+  <div id="descriptionModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 p-4">
+    <div class="bg-white p-6 rounded-xl shadow-lg w-full max-w-lg">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-2xl font-semibold text-green-900">Report Description</h2>
+        <button id="closeDescriptionModal" class="text-gray-500 hover:text-gray-800 text-3xl">&times;</button>
+      </div>
+      
+      <p id="modalDescriptionText" class="text-gray-700 text-base leading-relaxed whitespace-pre-wrap"></p>
+    </div>
+  </div>
 
   <!-- Footer -->
   <footer class="bg-green-900 text-white text-center py-6 mt-auto">

@@ -53,33 +53,52 @@
     </div>
 
     <script>
-        // Hardcoded credentials (demo only)
-        const ADMIN_USERNAME = "admin";
-        const ADMIN_PASSWORD = "password123";
-
         const form = document.getElementById("adminForm");
+        const usernameField = document.getElementById("username");
+        const passwordField = document.getElementById("password");
 
-        form.addEventListener("submit", function(e) {
+        form.addEventListener("submit", async (e) => {
             e.preventDefault();
-            const username = document.getElementById("username").value.trim();
-            const password = document.getElementById("password").value.trim();
+            const username = usernameField.value.trim();
+            const password = passwordField.value.trim();
 
-            if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-                localStorage.setItem("defaultSection", "sectionAnnouncements");
-                window.location.href = "admin_dashboard.html";
-            } else {
-                alert("Invalid username or password!");
+            if (!username || !password) {
+                alert("Please enter both username and password.");
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username: username, password: password })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    localStorage.setItem("adminToken", result.token);
+                    
+                    localStorage.setItem("defaultSection", "sectionAnnouncements");
+                    window.location.href = "admin_dashboard.html";
+                } else {
+                    alert(result.message || 'Invalid username or password!');
+                }
+
+            } catch (error) {
+                console.error('Login error:', error);
+                alert('An error occurred during login. Please try again.');
             }
         });
 
         // Toggle Password Visibility
         const togglePassword = document.getElementById("togglePassword");
-        const passwordField = document.getElementById("password");
 
         togglePassword.addEventListener("click", () => {
             const type = passwordField.type === "password" ? "text" : "password";
             passwordField.type = type;
-
             togglePassword.classList.toggle("fa-eye");
             togglePassword.classList.toggle("fa-eye-slash");
         });

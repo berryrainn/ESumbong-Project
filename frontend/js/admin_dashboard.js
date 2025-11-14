@@ -1,3 +1,5 @@
+let mapInstance = null; // To hold the Leaflet map instance
+
 // =======================
 // SIDEBAR
 // =======================
@@ -80,6 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   populateAuditLog(auditLogData);
+  fetchReports();
 });
 
 
@@ -487,74 +490,65 @@ uploadNewsBtn.addEventListener('click', () => {
 // =======================
 // REPORTS TABLE SECTION
 // =======================
-const reports = [
-    {
-        trackingId: "TR-001",
-        name: "Juan Dela Cruz",
-        photo: "Images/sampleId.jpg",
-        category: "Garbage",
-        description: "Uncollected garbage near basketball court.",
-        areaPhoto: "Images/garbage.jpg",
-        status: "In Progress",
-        priority: "High",
-        date: "2025-10-15"
-    },
-    {
-        trackingId: "TR-002",
-        name: null,
-        photo: null,
-        category: "Streetlight",
-        description: "Broken streetlight in Purok 4.",
-        areaPhoto: "Images/streetlight.jpg",
-        status: "Resolved",
-        priority: "Medium",
-        date: "2025-10-10"
-    },
-    {
-        trackingId: "TR-003",
-        name: "Pedro Reyes",
-        photo: "Images/sampleId.jpg",
-        category: "Road",
-        description: "Potholes along main road.",
-        areaPhoto: "Images/pothole.jpg",
-        status: "Pending",
-        priority: "Low",
-        date: "2025-10-18"
-    }
-];
-
+let allReports = []; // This will hold the data from the database
 const tableBody = document.getElementById("reportTableBody");
 
-function populateTable(data) {
-    tableBody.innerHTML = "";
+// NEW FUNCTION: Fetch reports from the server
+async function fetchReports() {
+    try {
+        const response = await fetch('/api/reports');
+        const data = await response.json();
 
-    // Create modal dynamically (only once)
-    let imageModal = document.createElement("div");
-    imageModal.className = "fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50";
-    imageModal.innerHTML = `
-      <div class="relative">
-        <img id="modalImage" class="max-w-full max-h-[80vh] rounded shadow-lg" />
-        <button onclick="this.closest('div').parentElement.classList.add('hidden')" 
-                class="absolute top-0 right-0 m-2 text-white text-2xl font-bold bg-black bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center">&times;</button>
-      </div>
-    `;
-    imageModal.onclick = e => { if (e.target === imageModal) imageModal.classList.add("hidden"); };
-    document.body.appendChild(imageModal);
+        if (data.success) {
+            allReports = data.reports; // Store the fetched reports
+            populateTable(allReports); // Populate the table
+        } else {
+            console.error('Failed to load reports:', data.message);
+        }
+    } catch (error) {
+        console.error('Network error fetching reports:', error);
+    }
+}
+
+function populateTable(data) {
+    if (!tableBody) return;
+    tableBody.innerHTML = ""; // Clear existing table
+
+    // --- (The rest of your populateTable function is the same) ---
+    // (This dynamically creates the image modal)
+    let imageModal = document.body.querySelector("#imageModal");
+    if (!imageModal) {
+        imageModal = document.createElement("div");
+        imageModal.id = "imageModal";
+        imageModal.className = "fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50";
+        imageModal.innerHTML = `
+          <div class="relative">
+            <img id="modalImage" class="max-w-full max-h-[80vh] rounded shadow-lg" />
+            <button onclick="this.closest('#imageModal').classList.add('hidden')" 
+                    class="absolute top-0 right-0 m-2 text-white text-2xl font-bold bg-black bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center">&times;</button>
+          </div>
+        `;
+        imageModal.onclick = e => { if (e.target === imageModal) imageModal.classList.add("hidden"); };
+        document.body.appendChild(imageModal);
+    }
     const modalImage = imageModal.querySelector("#modalImage");
 
     data.forEach((report, i) => {
         const tr = document.createElement("tr");
         tr.className = "hover:bg-gray-50 transition";
-        const imgCell = src => {
-          if (!src) return "-";
-          const sizeClass = src.includes("sampleId") ? "w-16 h-16" : "w-24 h-16";
-          return `
-          <img src="${src}"
-          title="Click to view the photo"
-          class="cursor-pointer ${sizeClass} object-cover rounded shadow-sm hover:shadow-md transition"
-          data-img="${src}"
-          />
-          `;
+        
+        // Helper for image cells
+        const imgCell = (paths) => {
+            if (!paths) return "-";
+            // Handle multiple images (split by comma)
+            const firstPath = paths.split(',')[0];
+            return `
+            <img src="${firstPath}"
+            title="Click to view the photo"
+            class="cursor-pointer w-24 h-16 object-cover rounded shadow-sm hover:shadow-md transition"
+            data-img="${firstPath}"
+            />
+            `;
         };
 
         tr.innerHTML = `
@@ -562,20 +556,35 @@ function populateTable(data) {
             <td class="px-4 py-2 border">${report.name || "Anonymous"}</td>
             <td class="px-4 py-2 border text-center">${imgCell(report.photo)}</td>
             <td class="px-4 py-2 border">${report.category}</td>
-            <td class="px-4 py-2 border">${report.description}</td>
+
+            <td class="px-4 py-2 border text-center">
+                <button class="view-desc-btn bg-green-700 text-white px-3 py-1 rounded-md hover:bg-green-800 transition">
+                    View
+                </button>
+            </td>
+
+            <td class="px-4 py-2 border text-center">
+                <button class="view-address-btn bg-green-700 text-white px-3 py-1 rounded-md hover:bg-green-800 transition"
+                        data-address="${report.address}"
+                        data-lat="${report.latitude}"
+                        data-lng="${report.longitude}">
+                    View
+                </button>
+            </td>
+
             <td class="px-4 py-2 border text-center">${imgCell(report.areaPhoto)}</td>
-            <td class="px-4 py-2 border">${report.date}</td>
+            <td class="px-4 py-2 border whitespace-nowrap">${report.date}</td>
             <td class="px-4 py-2 border">
-                <select class="border rounded px-2 py-1" data-id="${i}" data-type="status">
+                <select class="border rounded px-2 py-1" data-id="${report.trackingId}" data-type="status">
                     <option value="Pending" ${report.status==="Pending"?"selected":""}>Pending</option>
                     <option value="In Progress" ${report.status==="In Progress"?"selected":""}>In Progress</option>
                     <option value="Resolved" ${report.status==="Resolved"?"selected":""}>Resolved</option>
                 </select>
             </td>
             <td class="px-4 py-2 border">
-                <span class="w-20 inline-block text-center py-1 rounded-full font-semibold text-white 
-                ${report.priority==='High'?'bg-red-600':
-                  report.priority==='Medium'?'bg-yellow-500':
+                <span class="w-24 inline-block text-center py-1 rounded-full font-semibold text-white 
+                ${report.priority==='Emergency'?'bg-red-600':
+                  report.priority==='High'?'bg-yellow-500':
                   'bg-green-600'}">
                   ${report.priority}
                 </span>
@@ -584,56 +593,196 @@ function populateTable(data) {
         tableBody.appendChild(tr);
     });
 
-    // Status update
+    // --- NEW: Status Update Logic (with API call) ---
     tableBody.querySelectorAll("select").forEach(select => {
-
-      if (select.value === "Resolved") {
-        select.disabled = true;
-        select.classList.add("opacity-60", "cursor-not-allowed");
-      }
-
-      select.addEventListener("change", e => {
-        const id = e.target.dataset.id;
-        const type = e.target.dataset.type;
-        const newValue = e.target.value;
-        const oldValue = reports[id][type];
-
-        // Confirmation message when changing the status
-        const confirmed = confirm("Are you sure you want to change the status?");
-        if (confirmed) {
-          reports[id][type] = newValue;
-          alert(`Status changed to "${newValue}".`)
-
-          // Disabling the dropdown when the status is "Resolved"
-          if (newValue === "Resolved") {
-            e.target.disabled = true;
-            e.target.classList.add("opacity-60", "cursor-not-allowed");
-          }
-
-        } else {
-          e.target.value = oldValue;
+        // This disables the dropdown if status is "Resolved"
+        if (select.value === "Resolved") {
+            select.disabled = true;
+            select.classList.add("opacity-60", "cursor-not-allowed");
         }
-      });
+        
+        select.addEventListener("change", async (e) => {
+            const trackingId = e.target.dataset.id;
+            const newStatus = e.target.value;
+            // Find the original status from our data array
+            const oldValue = allReports.find(r => r.trackingId === trackingId).status;
+
+            // 1. Show confirmation box
+            const confirmed = confirm(`Are you sure you want to change status for ${trackingId} to "${newStatus}"?`);
+            
+            if (confirmed) {
+                try {
+                    // 2. Call the API
+                    const response = await fetch(`/api/reports/${trackingId}/status`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ newStatus: newStatus })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        // 3. Success: Disable dropdown if "Resolved"
+                        alert('Status updated successfully!');
+                        if (newStatus === "Resolved") {
+                            e.target.disabled = true;
+                            e.target.classList.add("opacity-60", "cursor-not-allowed");
+                        }
+                        // Update the data in our local 'allReports' array
+                        allReports.find(r => r.trackingId === trackingId).status = newStatus;
+                    } else {
+                        // 4. API Error: Revert the change
+                        alert('Failed to update status: ' + result.message);
+                        e.target.value = oldValue; // Revert
+                    }
+
+                } catch (error) {
+                    // 5. Network Error: Revert the change
+                    console.error('Network error:', error);
+                    alert('A network error occurred. Please try again.');
+                    e.target.value = oldValue; // Revert
+                }
+            } else {
+                // 6. User clicked "Cancel": Revert the change
+                e.target.value = oldValue; 
+            }
+        });
     });
 
-    // Image modal click
+    // Image modal Click
     tableBody.querySelectorAll("img[data-img]").forEach(img => img.onclick = e => { modalImage.src = e.target.dataset.img; imageModal.classList.remove("hidden"); });
+
+    // --- Address Modal Click  ---
+    const addressModal = document.getElementById('addressModal');
+    const modalAddressText = document.getElementById('modalAddressText');
+
+    tableBody.querySelectorAll('.view-address-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const address = btn.dataset.address;
+            const lat = btn.dataset.lat;
+            const lng = btn.dataset.lng;
+
+            modalAddressText.textContent = address;
+
+            addressModal.classList.remove('hidden');
+
+            if (!mapInstance) {
+                mapInstance = L.map('modalMap').setView([lat, lng], 16);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap'
+                }).addTo(mapInstance);
+            } else {
+
+                mapInstance.setView([lat, lng], 16);
+            }
+
+            L.marker([lat, lng]).addTo(mapInstance);
+
+            setTimeout(() => {
+                mapInstance.invalidateSize();
+            }, 100);
+        });
+    });
+
+    // Add close button logic
+    document.getElementById('closeAddressModal').addEventListener('click', () => {
+        addressModal.classList.add('hidden');
+    });
+
+    // --- Description Modal Click ---
+        const descriptionModal = document.getElementById('descriptionModal');
+        const modalDescriptionText = document.getElementById('modalDescriptionText');
+        
+        tableBody.querySelectorAll('.view-desc-btn').forEach((btn, index) => {
+            btn.addEventListener('click', () => {
+                const description = data[index].description;
+
+                modalDescriptionText.textContent = description;
+                
+                descriptionModal.classList.remove('hidden');
+            });
+        });
+
+        document.getElementById('closeDescriptionModal').addEventListener('click', () => {
+            descriptionModal.classList.add('hidden');
+        });
 }
 
-populateTable(reports);
 
-// Search
-document.getElementById("searchInput").addEventListener("input", e => {
-    const term = e.target.value.toLowerCase();
-    const filtered = reports.filter(r =>
-        (r.name ? r.name.toLowerCase() : "anonymous").includes(term) ||
-        r.category.toLowerCase().includes(term) ||
-        r.trackingId.toLowerCase().includes(term) ||
-        r.status.toLowerCase().includes(term) ||
-        r.priority.toLowerCase().includes(term)
-    );
+
+// --- Search and Filter  ---
+const searchInput = document.getElementById("searchInput");
+const dateRangeFilter = document.getElementById("dateRangeFilter");
+
+// Helper function to get a date as a "YYYY-MM-DD" string
+function getLocalISOString(date) {
+    const year = date.getFullYear();
+    // getMonth() is 0-indexed (0=Jan), so add 1
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}`;
+}
+
+function applyFilters() {
+    const searchTerm = searchInput.value.toLowerCase();
+    const filterValue = dateRangeFilter.value;
+
+    let filtered = allReports;
+
+    if (searchTerm) {
+        filtered = filtered.filter(r =>
+            (r.name ? r.name.toLowerCase() : "anonymous").includes(searchTerm) ||
+            r.category.toLowerCase().includes(searchTerm) ||
+            r.trackingId.toLowerCase().includes(searchTerm) ||
+            r.status.toLowerCase().includes(searchTerm) ||
+            r.priority.toLowerCase().includes(searchTerm)
+        );
+    }
+
+    if (filterValue !== "all-time") {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); 
+        
+        let startDate;
+
+        if (filterValue === "today") {
+
+            const todayString = getLocalISOString(today);
+            filtered = filtered.filter(r => r.date === todayString);
+        } else {
+            switch (filterValue) {
+                case "past-week":
+                    startDate = new Date(today);
+                    startDate.setDate(today.getDate() - 7);
+                    break;
+                case "past-month":
+                    startDate = new Date(today);
+                    startDate.setMonth(today.getMonth() - 1);
+                    break;
+                case "past-year":
+                    startDate = new Date(today);
+                    startDate.setFullYear(today.getFullYear() - 1);
+                    break;
+            }
+            
+            const startDateString = getLocalISOString(startDate);
+            
+            filtered = filtered.filter(r => r.date >= startDateString);
+        }
+    }
+
     populateTable(filtered);
-});
+}
+
+if (searchInput) {
+    searchInput.addEventListener("input", applyFilters);
+}
+if (dateRangeFilter) {
+    dateRangeFilter.addEventListener("change", applyFilters);
+}
 
 
 // =======================
@@ -642,121 +791,135 @@ document.getElementById("searchInput").addEventListener("input", e => {
 const downloadMenuBtn = document.getElementById('downloadMenuBtn');
 const downloadMenu = document.getElementById('downloadMenu');
 
-downloadMenuBtn.addEventListener('click', () => {
-    downloadMenu.classList.toggle('hidden');
-});
+if (downloadMenuBtn) {
+    downloadMenuBtn.addEventListener('click', () => {
+        downloadMenu.classList.toggle('hidden');
+    });
 
-// --- NEW --- Helper function to get the date as YYYY-MM-DD
-function getFormattedDate() {
-    const today = new Date();
-    // toISOString() gives 'YYYY-MM-DDTHH:mm:ss.sssZ',
-    // .split('T')[0] just gets the 'YYYY-MM-DD' part.
-    return today.toISOString().split('T')[0];
+    // Optional: Hide menu when clicking outside
+    document.addEventListener('click', (event) => {
+        if (!downloadMenuBtn.contains(event.target) && !downloadMenu.contains(event.target)) {
+            downloadMenu.classList.add('hidden');
+        }
+    });
 }
 
-// CSV Download
+// --- Helper function to get the date as YYYY-MM-DD ---
+function getFormattedDate() {
+    const today = new Date();
+    // Use our local-aware function
+    return getLocalISOString(today); 
+}
+
+// --- CSV Download ---
 function downloadCSV() {
     const dateStr = getFormattedDate();
     const systemName = "E-Sumbong kay Kap! Barangay Pulong Buhangin";
     
-    // Add the system name and date as the first lines
     let csv = `${systemName}\n`;
     csv += `Submitted Reports as of ${dateStr}\n\n`;
     
     // Add the table headers
-    csv += 'Tracking ID,Name,Category,Description,Date Submitted,Status,Priority\n';
+    csv += 'Tracking ID,Name,Category,Description,Address,Date Submitted,Status,Priority\n';
     
-    // Add the data
-    reports.forEach(r => {
-        csv += `${r.trackingId},${r.name ? r.name : 'Anonymous'},${r.category},"${r.description}",${r.date},${r.status},${r.priority}\n`;
+    // ** USE 'allReports' INSTEAD OF 'reports' **
+    allReports.forEach(r => {
+        // Make sure description is "CSV-safe" (in quotes)
+        const description = `"${r.description.replace(/"/g, '""')}"`;
+        const address = `"${r.address.replace(/"/g, '""')}"`;
+        
+        csv += `${r.trackingId},${r.name || 'Anonymous'},${r.category},${description},${address},${r.date},${r.status},${r.priority}\n`;
     });
 
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    
     link.download = `Barangay_Reports_${dateStr}.csv`;
     link.click();
     downloadMenu.classList.add('hidden');
 }
 
-// Excel Download
+// --- Excel Download ---
 function downloadExcel() {
     const dateStr = getFormattedDate();
     const systemName = "E-Sumbong kay Kap! Barangay Pulong Buhangin";
 
     const wb = XLSX.utils.book_new();
     
-    // Data setup
     const wsData = [
         [systemName], 
         [`Submitted Reports as of ${dateStr}`], 
         [], 
-        ["Tracking ID","Name","Category","Description","Date Submitted","Status","Priority"] 
+        // Updated headers to include Address
+        ["Tracking ID","Name","Category","Description","Address","Date Submitted","Status","Priority"] 
     ];
     
-    reports.forEach(r => {
-        wsData.push([r.trackingId, r.name ? r.name : 'Anonymous', r.category, r.description, r.date, r.status, r.priority]);
+    // ** USE 'allReports' INSTEAD OF 'reports' **
+    allReports.forEach(r => {
+        wsData.push([r.trackingId, r.name || 'Anonymous', r.category, r.description, r.address, r.date, r.status, r.priority]);
     });
 
     const ws = XLSX.utils.aoa_to_sheet(wsData);
     
+    // Column Widths
     ws['!cols'] = [
-        { wch: 12 }, // Column A: Tracking ID
-        { wch: 20 }, // Column B: Name
-        { wch: 15 }, // Column C: Category
-        { wch: 50 }, // Column D: Description
-        { wch: 15 }, // Column E: Date Submitted
-        { wch: 12 }, // Column F: Status
-        { wch: 10 }  // Column G: Priority
+        { wch: 12 }, // Tracking ID
+        { wch: 20 }, // Name
+        { wch: 15 }, // Category
+        { wch: 50 }, // Description
+        { wch: 74 }, // Address 
+        { wch: 15 }, // Date Submitted
+        { wch: 12 }, // Status
+        { wch: 10 }  // Priority
     ];
 
+    // Merge header cells
     ws['!merges'] = [
-        { s: { r: 0, c: 0 }, e: { r: 0, c: 6 } },
-        { s: { r: 1, c: 0 }, e: { r: 1, c: 6 } }  
+        { s: { r: 0, c: 0 }, e: { r: 0, c: 7 } }, // Title (spans 8 cols)
+        { s: { r: 1, c: 0 }, e: { r: 1, c: 7 } }  // Subtitle (spans 8 cols)
     ];
 
     XLSX.utils.book_append_sheet(wb, ws, "Reports");
-    
     XLSX.writeFile(wb, `Barangay_Reports_${dateStr}.xlsx`);
     downloadMenu.classList.add('hidden');
 }
 
-// PDF Download
+// --- PDF Download ---
 function downloadPDF() {
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
+    const doc = new jsPDF({ orientation: 'landscape' }); // Use landscape for more columns
     const dateStr = getFormattedDate();
     const systemName = "E-Sumbong kay Kap! Barangay Pulong Buhangin";
     const systemColor = [34, 139, 34]; 
 
-    
+    // Add Logo (logoBase64 is from your logo_data.js)
     if (typeof logoBase64 !== 'undefined' && logoBase64) {
         doc.addImage(logoBase64, 'PNG', 14, 12, 24, 24); 
     }
 
-    // Add the Header Text 
+    // Add Header Text
     doc.setFontSize(18);
     doc.setTextColor(systemColor[0], systemColor[1], systemColor[2]); 
     doc.text(systemName, 42, 20);
-    
     doc.setFontSize(12);
     doc.setTextColor(100); 
     doc.text(`Submitted Reports as of ${dateStr}`, 42, 28); 
 
-    // Define table columns and rows
-    const head = [["Tracking ID","Name","Category","Description","Date Submitted","Status","Priority"]];
-    const body = reports.map(r => [
+    // Updated headers
+    const head = [["Tracking ID","Name","Category","Description","Address","Date Submitted","Status","Priority"]];
+    
+    // ** USE 'allReports' INSTEAD OF 'reports' **
+    const body = allReports.map(r => [
         r.trackingId,
-        r.name ? r.name : 'Anonymous',
+        r.name || 'Anonymous',
         r.category,
         r.description,
+        r.address,
         r.date,
         r.status,
         r.priority
     ]);
 
-    // Draw the table
     doc.autoTable({
         head,
         body,
@@ -765,6 +928,12 @@ function downloadPDF() {
             fillColor: systemColor,
             textColor: 255,
             fontStyle: 'bold'
+        },
+        // Fit more content
+        styles: { fontSize: 8 },
+        columnStyles: {
+            3: { cellWidth: 50 }, // Description
+            4: { cellWidth: 50 }  // Address
         }
     });
 

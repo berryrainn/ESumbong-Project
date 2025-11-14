@@ -146,6 +146,65 @@ app.patch('/api/reports/:trackingId/status', (req, res) => {
     });
 });
 
+// --- SUGGESTIONS API ENDPOINTS ---
+
+// 1. POST: Submit a new suggestion
+app.post('/api/suggestions', (req, res) => {
+    const { fullname, email, suggestion } = req.body;
+
+    const sql = `CALL sp_SubmitSuggestion(?, ?, ?)`;
+    const values = [fullname || 'Anonymous', email || null, suggestion];
+
+    db.query(sql, values, (err, result) => {
+        if (err) {
+            console.error('Error submitting suggestion:', err);
+            return res.status(500).json({ success: false, message: 'Database error' });
+        }
+        res.status(200).json({ success: true, message: 'Suggestion submitted!' });
+    });
+});
+
+// 2. GET: Get all suggestions for admin
+app.get('/api/suggestions', (req, res) => {
+    const sql = `CALL sp_GetSuggestions()`;
+    
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.error('Error fetching suggestions:', err);
+            return res.status(500).json({ success: false, message: 'Database error' });
+        }
+        res.status(200).json({ success: true, suggestions: results[0] });
+    });
+});
+
+// 3. PATCH: Mark a suggestion as read
+app.patch('/api/suggestions/:id/read', (req, res) => {
+    const { id } = req.params;
+    const sql = `CALL sp_MarkSuggestionAsRead(?)`;
+
+    db.query(sql, [id], (err, result) => {
+        if (err) {
+            console.error('Error marking as read:', err);
+            return res.status(500).json({ success: false, message: 'Database error' });
+        }
+        res.status(200).json({ success: true, message: 'Marked as read' });
+    });
+});
+
+// 4. DELETE: Delete a suggestion
+app.delete('/api/suggestions/:id', (req, res) => {
+    const { id } = req.params;
+    const sql = `CALL sp_DeleteSuggestion(?)`;
+
+    db.query(sql, [id], (err, result) => {
+        if (err) {
+            console.error('Error deleting suggestion:', err);
+            return res.status(500).json({ success: false, message: 'Database error' });
+        }
+        res.status(200).json({ success: true, message: 'Suggestion deleted' });
+    });
+});
+
 // --- ADMIN LOGIN ---
 app.post('/api/admin/login', (req, res) => {
     const { username, password } = req.body;

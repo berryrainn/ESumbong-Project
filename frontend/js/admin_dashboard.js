@@ -16,12 +16,13 @@ let mapInstance = null; // To hold the Leaflet map instance
 
     // Function to switch visible sections
     function showSection(sectionId) {
-      const sections = ['sectionAnnouncements', 'sectionCharts', 'sectionReports', 'sectionAuditLog'];
+      const sections = ['sectionAnnouncements', 'sectionCharts', 'sectionReports', 'sectionAuditLog','sectionSuggestions'];
       const buttons = {
         sectionAnnouncements: document.getElementById('btnAnnouncements'),
         sectionCharts: document.getElementById('btnCharts'),
         sectionReports: document.getElementById('btnReports'),
-        sectionAuditLog: document.getElementById('btnAuditLog')
+        sectionAuditLog: document.getElementById('btnAuditLog'),
+        sectionSuggestions: document.getElementById('btnSuggestions')
       };
 
       // Show selected section, hide others
@@ -83,6 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   populateAuditLog(auditLogData);
   fetchReports();
+  fetchSuggestions();
 });
 
 
@@ -1013,5 +1015,140 @@ if (auditLogSearchInput) {
     );
     populateAuditLog(filtered);
   });
+}
+
+// =======================
+// SUGGESTIONS MAILBOX
+// =======================
+let allSuggestions = [];
+let currentSuggestionId = null;
+
+const suggestionListEl = document.getElementById('suggestion-list');
+const placeholderEl = document.getElementById('suggestion-placeholder');
+const contentEl = document.getElementById('suggestion-content');
+const fromEl = document.getElementById('suggestion-from');
+const emailEl = document.getElementById('suggestion-email');
+const dateEl = document.getElementById('suggestion-date');
+const bodyEl = document.getElementById('suggestion-body');
+const deleteBtn = document.getElementById('delete-suggestion-btn');
+
+// 1. Fetch all suggestions from the API
+async function fetchSuggestions() {
+    try {
+        const response = await fetch('/api/suggestions');
+        const data = await response.json();
+        if (data.success) {
+            allSuggestions = data.suggestions;
+            renderSuggestionList();
+            showSuggestionContent(null); // Show placeholder
+        } else {
+            console.error('Failed to fetch suggestions:', data.message);
+        }
+    } catch (err) {
+        console.error('Network error fetching suggestions:', err);
+    }
+}
+
+// 2. Render the list on the left pane
+function renderSuggestionList() {
+    if (!suggestionListEl) return;
+    suggestionListEl.innerHTML = ''; // Clear list
+
+    if (allSuggestions.length === 0) {
+        suggestionListEl.innerHTML = '<p class="p-4 text-gray-500">No suggestions yet.</p>';
+        return;
+    }
+
+    allSuggestions.forEach(s => {
+        const isRead = s.isRead === 1;
+        const item = document.createElement('a');
+        item.href = '#';
+        item.className = `suggestion-item block p-4 border-b border-gray-200 hover:bg-green-50 ${isRead ? 'bg-gray-50' : 'bg-white'}`;
+        item.dataset.id = s.id;
+
+        item.innerHTML = `
+            <div class="flex justify-between items-center mb-1">
+                <span class="${isRead ? 'font-normal text-gray-700' : 'font-bold text-green-900'}">${s.fullname || 'Anonymous'}</span>
+                <span class="text-xs text-gray-500">${s.date}</span>
+            </div>
+            <p class="text-sm ${isRead ? 'text-gray-500' : 'text-gray-600'} truncate">${s.suggestionText}</p>
+        `;
+
+        // 3. Add click event to each item
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            showSuggestionContent(s.id);
+            // Mark as read
+            if (!isRead) {
+                markAsRead(s.id);
+            }
+        });
+
+        suggestionListEl.appendChild(item);
+    });
+}
+
+// 4. Show the selected suggestion's content in the right pane
+function showSuggestionContent(id) {
+    if (!id) {
+        // No ID, show placeholder
+        placeholderEl.classList.remove('hidden');
+        contentEl.classList.add('hidden');
+        currentSuggestionId = null;
+        return;
+    }
+
+    const suggestion = allSuggestions.find(s => s.id === id);
+    if (!suggestion) return;
+
+    currentSuggestionId = id;
+
+    // Fill content
+    fromEl.textContent = suggestion.fullname || 'Anonymous';
+    emailEl.textContent = suggestion.email || 'N/A';
+    dateEl.textContent = suggestion.date;
+    bodyEl.textContent = suggestion.suggestionText;
+
+    // Show content, hide placeholder
+    placeholderEl.classList.add('hidden');
+    contentEl.classList.remove('hidden');
+}
+
+// 5. Call the API to mark a suggestion as read
+async function markAsRead(id) {
+    try {
+        await fetch(`/api/suggestions/${id}/read`, { method: 'PATCH' });
+        // Update local data
+        const suggestion = allSuggestions.find(s => s.id === id);
+        suggestion.isRead = 1;
+        // Re-render the list to update styles
+        renderSuggestionList();
+    } catch (err) {
+        console.error('Error marking as read:', err);
+    }
+}
+
+// 6. Delete Button logic
+if (deleteBtn) {
+    deleteBtn.addEventListener('click', async () => {
+        if (!currentSuggestionId) return;
+
+        if (confirm('Are you sure you want to delete this suggestion?')) {
+            try {
+                const response = await fetch(`/api/suggestions/${currentSuggestionId}`, { method: 'DELETE' });
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Suggestion deleted.');
+                    // Refresh the whole list
+                    fetchSuggestions();
+                } else {
+                    alert('Error deleting: ' + result.message);
+                }
+            } catch (err) {
+                alert('Network error deleting suggestion.');
+            }
+        }
+    });
 }
 

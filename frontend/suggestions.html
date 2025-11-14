@@ -77,13 +77,13 @@
   const suggestionInput = document.getElementById('suggestion');
   const emailError = document.getElementById('emailError');
 
+  // Helper function for robust email validation
   function isValidEmail(email) {
-    // This regex is a good balance of accuracy and simplicity,
-    // handling formats like user+tag@domain.com
     const regex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return regex.test(String(email).toLowerCase());
   }
 
+  // Toggles the name/email fields
   const toggleRequired = () => {
     const isAnonymous = anonymousCheckbox.checked;
     nameField.style.display = isAnonymous ? 'none' : 'block';
@@ -96,68 +96,80 @@
 
   toggleRequired();
 
-  anonymousCheckbox.addEventListener('change', toggleRequired)
+  anonymousCheckbox.addEventListener('change', toggleRequired);
 
-  suggestionForm.addEventListener('submit', (event) => {
-    // Prevent the default form submission first
-    event.preventDefault(); 
+  // --- NEW: Submit Event Listener with API Call ---
+  suggestionForm.addEventListener('submit', async (event) => {
+    event.preventDefault(); // Stop the form from reloading the page
 
-    // Get current values
+    // 1. Get current values
     const isAnonymous = anonymousCheckbox.checked;
     const name = nameInput.value.trim();
     const email = emailInput.value.trim();
     const suggestion = suggestionInput.value.trim();
 
-    // Manual Validation
-    
-    // Hide the error message at the start of a new check
+    // 2. Manual Validation
     emailError.classList.add('hidden');
 
-    // Check suggestion (always required)
     if (!suggestion) {
       alert("Please enter your suggestion.");
       suggestionInput.focus();
-      return; 
+      return;
     }
 
-    // Check fields *only if not* anonymous
+    let formData = {
+        suggestion: suggestion,
+        fullname: null,
+        email: null
+    };
+
     if (!isAnonymous) {
       if (!name) {
         alert("Please enter your full name.");
         nameInput.focus();
-        return; 
+        return;
       }
-
-      // Email validation
-      if (!email) {
-        // Email is empty
-        emailError.textContent = "Please enter your email address.";
-        emailError.classList.remove('hidden'); 
-        emailInput.focus();
-        return; 
-      } else if (!isValidEmail(email)) {
-        // Email is in an invalid format
+      if (email && !isValidEmail(email)) {
         emailError.textContent = "Please enter a valid email address (e.g., name@example.com).";
-        emailError.classList.remove('hidden'); 
+        emailError.classList.remove('hidden');
         emailInput.focus();
-        return; 
+        return;
       }
+      formData.fullname = name;
+      formData.email = email; // Send email (even if empty)
     }
 
-    // Validation passed, proceed with form submission (e.g., send data to server)
-    alert("Thank you! Your suggestion has been submitted successfully.");
-    suggestionForm.reset();
+    try {
+        // 3. Call the API
+        const response = await fetch('/api/suggestions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
 
-    // Reset all fields and UI to default state
-    nameField.style.display = 'block';
-    emailField.style.display = 'block';
-    emailError.classList.add('hidden'); 
-    anonymousCheckbox.checked = false;
-    toggleRequired();
+        const result = await response.json();
+
+        if (result.success) {
+            alert("Thank you! Your suggestion has been submitted successfully.");
+            suggestionForm.reset();
+            // Reset UI
+            nameField.style.display = 'block';
+            emailField.style.display = 'block';
+            emailError.classList.add('hidden');
+            anonymousCheckbox.checked = false;
+            toggleRequired();
+        } else {
+            alert("Submission failed: " + result.message);
+        }
+    } catch (error) {
+        console.error('Submission error:', error);
+        alert("A network error occurred. Please try again.");
+    }
   });
   </script>
-  </script>
-    <script src="js/script.js"></script>
-    <script src="js/loader.js"></script>
+  <script src="js/loader.js"></script>
 </body>
 </html>
+

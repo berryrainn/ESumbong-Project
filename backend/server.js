@@ -82,10 +82,11 @@ app.post('/api/submit-report', upload.fields([
 
     // Call the stored procedure
     const sql = `CALL sp_SubmitReport(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    const finalFullname = (!fullname || fullname === "null") ? "Anonymous" : fullname;
     
     const values = [
         trackingId, 
-        fullname, 
+        finalFullname, 
         category, 
         description, 
         priority, 

@@ -490,7 +490,9 @@ uploadNewsBtn.addEventListener('click', () => {
 // =======================
 // REPORTS TABLE SECTION
 // =======================
-let allReports = []; // This will hold the data from the database
+let allReports = []; // This will hold the *original* data from the database
+let filteredReports = []; // This will hold the *currently visible* data
+
 const tableBody = document.getElementById("reportTableBody");
 
 // NEW FUNCTION: Fetch reports from the server
@@ -501,6 +503,7 @@ async function fetchReports() {
 
         if (data.success) {
             allReports = data.reports; // Store the fetched reports
+            filteredReports = data.reports; // Initiallize filtered reports--visible
             populateTable(allReports); // Populate the table
         } else {
             console.error('Failed to load reports:', data.message);
@@ -774,7 +777,8 @@ function applyFilters() {
         }
     }
 
-    populateTable(filtered);
+    filteredReports = filtered;
+    populateTable(filteredReports);
 }
 
 if (searchInput) {
@@ -823,7 +827,7 @@ function downloadCSV() {
     csv += 'Tracking ID,Name,Category,Description,Address,Date Submitted,Status,Priority\n';
     
     // ** USE 'allReports' INSTEAD OF 'reports' **
-    allReports.forEach(r => {
+    filteredReports.forEach(r => {
         // Make sure description is "CSV-safe" (in quotes)
         const description = `"${r.description.replace(/"/g, '""')}"`;
         const address = `"${r.address.replace(/"/g, '""')}"`;
@@ -855,7 +859,7 @@ function downloadExcel() {
     ];
     
     // ** USE 'allReports' INSTEAD OF 'reports' **
-    allReports.forEach(r => {
+    filteredReports.forEach(r => {
         wsData.push([r.trackingId, r.name || 'Anonymous', r.category, r.description, r.address, r.date, r.status, r.priority]);
     });
 
@@ -909,7 +913,7 @@ function downloadPDF() {
     const head = [["Tracking ID","Name","Category","Description","Address","Date Submitted","Status","Priority"]];
     
     // ** USE 'allReports' INSTEAD OF 'reports' **
-    const body = allReports.map(r => [
+    const body = filteredReports.map(r => [
         r.trackingId,
         r.name || 'Anonymous',
         r.category,

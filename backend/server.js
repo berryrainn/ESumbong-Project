@@ -189,6 +189,27 @@ app.post('/api/admin/login', (req, res) => {
     });
 });
 
+// --- GET A SINGLE REPORT BY ID ---
+app.get('/api/reports/:trackingId', (req, res) => {
+    
+    const { trackingId } = req.params;
+
+    const sql = `CALL sp_GetReportByTrackingId(?)`;
+
+    db.query(sql, [trackingId], (err, results) => {
+        if (err) {
+            console.error('Error fetching report:', err);
+            return res.status(500).json({ success: false, message: 'Database error' });
+        }
+
+        if (results[0].length > 0) {
+            res.status(200).json({ success: true, report: results[0][0] });
+        } else {
+            res.status(404).json({ success: false, message: 'Report not found' });
+        }
+    });
+});
+
 // --- Start the Server Listener ---
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);

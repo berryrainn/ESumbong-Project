@@ -205,6 +205,22 @@ app.delete('/api/suggestions/:id', (req, res) => {
     });
 });
 
+// --- NEW ENDPOINT: GET DASHBOARD STATS ---
+app.get('/api/dashboard/stats', (req, res) => {
+    
+    const sql = `CALL sp_GetDashboardStats()`;
+
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.error('Error fetching dashboard stats:', err);
+            return res.status(500).json({ success: false, message: 'Database error' });
+        }
+
+        // results[0] contains the array of stats
+        res.status(200).json({ success: true, stats: results[0] });
+    });
+});
+
 // --- ADMIN LOGIN ---
 app.post('/api/admin/login', (req, res) => {
     const { username, password } = req.body;

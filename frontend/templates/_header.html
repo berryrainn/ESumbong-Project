@@ -1,46 +1,64 @@
 <header class="bg-green-900 text-white shadow-md fixed top-0 left-0 w-full z-50">
   <div class="flex items-center justify-between px-4 py-4 w-full">
-        <!-- Logo and Title -->
+    
     <div class="flex items-center space-x-2 xl:space-x-3">
-      
       <a href="https://www.facebook.com/BrgyPulongBuhanginOfficial" target="_blank" class="flex-shrink-0">
         <img src="Images/Logo.png" id="Logo" alt="Logo" class="w-12 h-12 xl:w-16 xl:h-16 rounded-full" title="Go to Official Facebook Page"/>
       </a>
-      
       <div class="leading-tight min-w-0">
-        <h1 class="text-lg xl:text-xl font-semibold truncate">E-Sumbong kay Kap! Barangay Pulong Buhangin</h1>
-        <p class="text-green-200 text-xs xl:text-sm italic">Tinig ng Mamamayan, Aksyon ni Kap!</p>
+        <h1 class="text-lg xl:text-xl font-semibold truncate">
+          E-Sumbong kay Kap! Barangay Pulong Buhangin
+        </h1>
+        <p class="text-green-200 text-xs xl:text-sm italic">
+          Tinig ng Mamamayan, Aksyon ni Kap!
+        </p>
       </div>
     </div>
 
-    <!-- Navigation and Admin Icon -->
     <div class="flex items-center gap-4">
-      <!-- Desktop Nav -->
-      <nav class="hidden xl:flex gap-6 mr-20">
-        <a href="index.html" class="text-green-300 hover:text-white hover:underline underline-offset-4 transition">Home</a>
-        <a href="reportissue.html" class="text-green-300 hover:text-white hover:underline underline-offset-4 transition">Submit a Report</a>
-        <a href="trackreports.html" class="text-green-300 hover:text-white hover:underline underline-offset-4 transition">Track Reports</a>
-        <a href="emergencyhotlines.html" class="text-green-300 hover:text-white hover:underline underline-offset-4 transition">Emergency Hotlines</a>
-        <a href="suggestions.html" class="text-green-300 hover:text-white hover:underline underline-offset-4 transition">Suggestions</a>
-        <a href="about.html" class="text-green-300 hover:text-white hover:underline underline-offset-4 transition">About</a>
+      
+      <nav class="hidden xl:flex gap-6 mr-20 items-center">
+        <a href="index.html" class="text-green-300 hover:text-white relative after:block after:h-[2px] after:w-0 after:bg-white after:transition-all hover:after:w-full">Home</a>
+
+        <div class="relative group">
+          <button id="reports-btn" class="text-green-300 hover:text-white flex items-center gap-1 focus:outline-none">
+            Reports
+            <i class="fas fa-chevron-down text-xs transition-transform duration-300" id="chevron"></i>
+          </button>
+          
+          <div id="reports-dropdown" class="hidden absolute left-0 mt-2 w-48 bg-green-800 rounded-lg shadow-xl border border-green-700 overflow-hidden z-50 transform origin-top transition-all duration-200">
+            <a href="reportissue.html" class="block px-4 py-3 text-sm text-green-100 hover:text-white hover:bg-green-700 transition border-b border-green-700">
+              <i class="fas fa-file-alt mr-2"></i> Submit a Report
+            </a>
+            <a href="trackreports.html" class="block px-4 py-3 text-sm text-green-100 hover:text-white hover:bg-green-700 transition">
+              <i class="fas fa-search mr-2"></i> Track Reports
+            </a>
+          </div>
+        </div>
+
+        <a href="emergencyhotlines.html" class="text-green-300 hover:text-white relative after:block after:h-[2px] after:w-0 after:bg-white after:transition-all hover:after:w-full">Emergency Hotlines</a>
+        <a href="suggestions.html" class="text-green-300 hover:text-white relative after:block after:h-[2px] after:w-0 after:bg-white after:transition-all hover:after:w-full">Suggestions</a>
+        <a href="about.html" class="text-green-300 hover:text-white relative after:block after:h-[2px] after:w-0 after:bg-white after:transition-all hover:after:w-full">About</a>
       </nav>
-      <!-- Hamburger Button for Mobile -->
+
       <button id="menu-btn" class="xl:hidden text-green-300 hover:text-white focus:outline-none">
         <i class="fas fa-bars text-2xl"></i>
       </button>
-      <!-- Admin Icon -->
+
       <a href="admin_signin.html" class="text-green-300 hover:text-white transition flex items-center justify-center ml-2" title="Admin Login">
         <i class="fas fa-user-shield text-2xl transition-transform duration-300 hover:scale-110"></i>
       </a>
     </div>
+
   </div>
-  <!-- Mobile Nav (hidden by default) -->
+
   <nav id="mobile-nav" class="xl:hidden hidden flex flex-col bg-green-800 px-4 py-4 z-50">
-    <a href="index.html" class="block w-full text-center text-green-300 hover:text-white py-1 hover:underline underline-offset-4 transition">Home</a>
-    <a href="reportissue.html" class="block w-full text-center text-green-300 hover:text-white py-1 hover:underline underline-offset-4 transition">Submit a Report</a>
-    <a href="trackreports.html" class="block w-full text-center text-green-300 hover:text-white py-1 hover:underline underline-offset-4 transition">Track Reports</a>
-    <a href="emergencyhotlines.html" class="block w-full text-center text-green-300 hover:text-white py-1 hover:underline underline-offset-4 transition">Emergency Hotlines</a>
-    <a href="suggestions.html" class="block w-full text-center text-green-300 hover:text-white py-1 hover:underline underline-offset-4 transition">Suggestions</a>
-    <a href="about.html" class="block w-full text-center text-green-300 hover:text-white py-1 hover:underline underline-offset-4 transition">About</a>
+    <a href="index.html" class="block w-full text-center text-green-300 hover:text-white py-2 hover:bg-green-700 rounded transition">Home</a>
+    <a href="reportissue.html" class="block w-full text-center text-green-300 hover:text-white py-2 hover:bg-green-700 rounded transition">Submit a Report</a>
+    <a href="trackreports.html" class="block w-full text-center text-green-300 hover:text-white py-2 hover:bg-green-700 rounded transition">Track Reports</a>
+    <a href="emergencyhotlines.html" class="block w-full text-center text-green-300 hover:text-white py-2 hover:bg-green-700 rounded transition">Emergency Hotlines</a>
+    <a href="suggestions.html" class="block w-full text-center text-green-300 hover:text-white py-2 hover:bg-green-700 rounded transition">Suggestions</a>
+    <a href="about.html" class="block w-full text-center text-green-300 hover:text-white py-2 hover:bg-green-700 rounded transition">About</a>
   </nav>
+
 </header>

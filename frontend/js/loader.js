@@ -16,23 +16,39 @@ async function loadHeader() {
       });
     }
 
-    let currentPage = window.location.pathname.split("/").pop();
-    
-    if (currentPage === "") {
-      currentPage = "index.html";
+    const reportsBtn = document.getElementById('reports-btn');
+    const reportsDropdown = document.getElementById('reports-dropdown');
+    const chevron = document.getElementById('chevron');
+
+    if (reportsBtn && reportsDropdown) {
+      reportsBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); 
+        reportsDropdown.classList.toggle('hidden');
+        chevron.classList.toggle('rotate-180');
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!reportsBtn.contains(e.target) && !reportsDropdown.contains(e.target)) {
+          reportsDropdown.classList.add('hidden');
+          chevron.classList.remove('rotate-180');
+        }
+      });
     }
+
+    let currentPage = window.location.pathname.split("/").pop();
+    if (currentPage === "") currentPage = "index.html";
     
+    // Select links
     const desktopLinks = headerPlaceholder.querySelectorAll('.xl\\:flex a[href]');
     const mobileLinks = headerPlaceholder.querySelectorAll('#mobile-nav a[href]');
-    
-    const allLinks = [...desktopLinks, ...mobileLinks];
+    const dropdownLinks = headerPlaceholder.querySelectorAll('#reports-dropdown a[href]'); // Add dropdown links
+
+    const allLinks = [...desktopLinks, ...mobileLinks, ...dropdownLinks];
 
     allLinks.forEach(link => {
       if (link.getAttribute('href') === currentPage) {
-        
         link.classList.add('opacity-50', 'cursor-not-allowed');
-        
-        link.classList.remove('hover:text-white', 'hover:underline');
+        link.classList.remove('hover:text-white', 'hover:underline', 'hover:bg-green-700');
       }
     });
 

@@ -279,7 +279,7 @@ const announcementsGrid = document.getElementById('announcementsGrid');
 let editingAnnCard = null;
 let editingAnnCardId = null;
 
-// Show form / Hide Add Button
+// Show form - Hide Add Button
 if (addAnnouncementBtn) {
     addAnnouncementBtn.addEventListener('click', () => {
         announcementForm.classList.remove('hidden');
@@ -304,7 +304,7 @@ if (cancelAnnouncementBtn) {
     });
 }
 
-// 1. FETCH announcements
+// FETCH announcements
 async function fetchAnnouncements() {
     try {
         const response = await fetch('/api/announcements');
@@ -319,7 +319,7 @@ async function fetchAnnouncements() {
     }
 }
 
-// 2. RENDER announcements
+// RENDER announcements
 function renderAnnouncements(announcements) {
     if (!announcementsGrid) return;
     announcementsGrid.innerHTML = '';
@@ -335,7 +335,7 @@ function renderAnnouncements(announcements) {
     });
 }
 
-// 3. CREATE announcement card
+// CREATE announcement card
 function createAnnouncementCard(ann) {
     const card = document.createElement('div');
     card.className = 'bg-white shadow-md rounded-xl p-6 hover:shadow-xl transition flex flex-col justify-between h-full';
@@ -353,7 +353,7 @@ function createAnnouncementCard(ann) {
         </div>
     `;
 
-    // Edit button
+    // EDIT announcement
     card.querySelector('.editBtn').addEventListener('click', () => {
         editingAnnCard = card;
         editingAnnCardId = ann.id;
@@ -367,7 +367,7 @@ function createAnnouncementCard(ann) {
         if (announcementTitle) announcementTitle.focus();
     });
 
-    // Delete button
+    // DELETE announcement
     card.querySelector('.deleteBtn').addEventListener('click', async () => {
         if (confirm('Are you sure you want to delete this announcement?')) {
             try {
@@ -387,7 +387,7 @@ function createAnnouncementCard(ann) {
     return card;
 }
 
-// 4. UPLOAD announcement
+// UPLOAD announcement
 if (uploadAnnouncementBtn) {
     uploadAnnouncementBtn.addEventListener('click', async () => {
         const title = announcementTitle.value.trim();
@@ -452,7 +452,7 @@ const newsCarousel = document.getElementById('newsCarousel');
 let editingNews = null;
 let editingNewsId = null;
 
-// Show form / Hide Add Button
+// Show form - Hide Add Button
 if (addNewsBtn) {
     addNewsBtn.addEventListener('click', () => {
         newsForm.classList.remove('hidden');
@@ -479,7 +479,7 @@ if (cancelNewsBtn) {
     });
 }
 
-// 1. FETCH news
+// FETCH news
 async function fetchNews() {
     try {
         const response = await fetch('/api/news');
@@ -494,7 +494,7 @@ async function fetchNews() {
     }
 }
 
-// 2. RENDER news
+// RENDER news
 function renderNews(newsItems) {
     if (!newsCarousel) return;
     newsCarousel.innerHTML = '';
@@ -510,7 +510,7 @@ function renderNews(newsItems) {
     });
 }
 
-// 3. CREATE news card
+// CREATE news card
 function createNewsCard(item) {
     const card = document.createElement('a');
     card.href = item.linkUrl || '#';
@@ -535,7 +535,7 @@ function createNewsCard(item) {
         </div>
     `;
 
-    // Edit
+    // EDIT news
     card.querySelector('.editNewsBtn').addEventListener('click', (e) => {
         e.preventDefault();
         editingNews = card;
@@ -552,7 +552,7 @@ function createNewsCard(item) {
         if (newsTitle) newsTitle.focus();
     });
 
-    // Delete
+    // DELETE news
     card.querySelector('.deleteNewsBtn').addEventListener('click', async (e) => {
         e.preventDefault();
         if (confirm('Are you sure you want to delete this news?')) {
@@ -573,7 +573,7 @@ function createNewsCard(item) {
     return card;
 }
 
-// 4. UPLOAD news
+// UPLOAD news
 if (uploadNewsBtn) {
     uploadNewsBtn.addEventListener('click', async () => {
         const title = newsTitle.value.trim();
@@ -640,9 +640,9 @@ async function fetchReports() {
         const data = await response.json();
 
         if (data.success) {
-            allReports = data.reports; // Store the fetched reports
-            filteredReports = data.reports; // Initiallize filtered reports
-            populateTable(allReports); // Populate the table
+            allReports = data.reports; 
+            filteredReports = data.reports; 
+            populateTable(allReports); 
         } else {
             console.error('Failed to load reports:', data.message);
         }
@@ -653,13 +653,12 @@ async function fetchReports() {
 
 function populateTable(data) {
     if (!tableBody) return;
-    tableBody.innerHTML = ""; // Clear existing table
+    tableBody.innerHTML = "";
 
     const downloadBtn = document.getElementById("downloadMenuBtn");
 
-    // --- 1. CHECK FOR EMPTY DATA ---
     if (data.length === 0) {
-        // A. Display "No Records Found" Row
+        // Display "No Records Found" Row
         tableBody.innerHTML = `
             <tr>
                 <td colspan="10" class="text-center p-10 text-gray-500">
@@ -672,16 +671,16 @@ function populateTable(data) {
             </tr>
         `;
 
-        // B. Disable Download Button
+        // Disable Download Button
         if (downloadBtn) {
             downloadBtn.disabled = true;
             downloadBtn.classList.add("opacity-50", "cursor-not-allowed");
             downloadBtn.classList.remove("hover:bg-green-800");
         }
-        return; // Stop here
+        return;
     }
 
-    // --- 2. DATA EXISTS: RE-ENABLE BUTTON ---
+    // --- Re enable button ---
     if (downloadBtn) {
         downloadBtn.disabled = false;
         downloadBtn.classList.remove("opacity-50", "cursor-not-allowed");

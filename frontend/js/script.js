@@ -1,6 +1,18 @@
 // =======================
-// HOME SECTION
+// ANIMATION OBSERVER
 // =======================
+document.addEventListener("DOMContentLoaded", () => {
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add("visible");
+            }
+        });
+    }, { threshold: 0.1 }); 
+
+    document.querySelectorAll('.fade-in').forEach((el) => observer.observe(el));
+});
+
 // Fade in home section
 window.addEventListener('DOMContentLoaded', () => {
   // Animate home content
@@ -25,21 +37,10 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Mobile menu toggle
-/*
-const menuBtn = document.getElementById('menu-btn');
-const mobileNav = document.getElementById('mobile-nav');
-
-if (menuBtn && mobileNav) {
-  menuBtn.addEventListener('click', () => {
-    mobileNav.classList.toggle('hidden');
-  });
-}
-  */
 
 //News Carousel
 const carousel = document.getElementById('newsCarousel');
-// --- ADD THIS CHECK ---
+// Only initialize if carousel exists
 if (carousel) {
   const totalSlides = carousel.children.length;
   const visibleSlides = 3;

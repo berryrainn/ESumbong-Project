@@ -129,7 +129,7 @@
       </div>
     </div>
 
-<!-- Announcement Section Starts -->
+<!-- Announcement Section -->
 <section id="sectionAnnouncements">
   <section class="bg-green-50 py-16 px-6">
     <div class="max-w-7xl mx-auto">
@@ -152,25 +152,28 @@
       </div>
 
       <!-- New Announcement Form -->
-      <div id="announcementForm"
+<div id="announcementForm"
            class="hidden max-w-md mx-auto mb-12 bg-white shadow-md rounded-xl p-6 hover:shadow-xl transition">
         <h4 class="text-xl font-semibold text-green-800 mb-4">New Announcement</h4>
 
         <input id="announcementTitle" type="text" placeholder="Enter announcement title"
                class="w-full border border-gray-300 rounded-lg p-3 mb-4 focus:ring-2 focus:ring-green-700 focus:outline-none">
 
-        <textarea id="announcementDescription" placeholder="Enter announcement description"
-                  class="w-full border border-gray-300 rounded-lg p-3 mb-4 focus:ring-2 focus:ring-green-700 focus:outline-none resize-none"
-                  rows="3"></textarea>
+        <textarea id="announcementDescription" placeholder="Enter announcement description" class="w-full border border-gray-300 rounded-lg p-3 mb-4 focus:ring-2 focus:ring-green-700 focus:outline-none resize-none" rows="3"></textarea>
 
-        <button id="uploadAnnouncementBtn"
-                class="bg-green-900 text-white px-6 py-2 rounded-lg hover:bg-green-800 transition w-full">
-          Upload Announcement
-        </button>
+        <div class="flex gap-3">
+            <button id="cancelAnnouncementBtn" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition w-1/2">
+              Cancel
+            </button>
+            <button id="uploadAnnouncementBtn" class="bg-green-900 text-white px-4 py-2 rounded-lg hover:bg-green-800 transition w-1/2">
+              Upload
+            </button>
+        </div>
       </div>
 
+
       <!-- New News Form -->
-      <div id="newsForm"
+       <div id="newsForm"
            class="hidden max-w-md mx-auto mb-12 bg-white shadow-md rounded-xl p-6 hover:shadow-xl transition">
         <h4 class="text-xl font-semibold text-green-800 mb-4">New News Item</h4>
 
@@ -187,204 +190,22 @@
         <input id="newsImage" type="text" placeholder="Enter image URL"
                class="w-full border border-gray-300 rounded-lg p-3 mb-4 focus:ring-2 focus:ring-green-700 focus:outline-none">
 
-        <button id="uploadNewsBtn"
-                class="bg-green-900 text-white px-6 py-2 rounded-lg hover:bg-green-800 transition w-full">
-          Upload News
-        </button>
+        <div class="flex gap-3">
+            <button id="cancelNewsBtn" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition w-1/2">
+              Cancel
+            </button>
+            <button id="uploadNewsBtn" class="bg-green-900 text-white px-4 py-2 rounded-lg hover:bg-green-800 transition w-1/2">
+              Upload
+            </button>
+        </div>
       </div>
 
       <!-- Announcements Grid -->
-      <div id="announcementsGrid" class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-
-        <!-- Announcement 1 -->
-        <div class="bg-white shadow-md rounded-xl p-6 hover:shadow-xl transition flex flex-col justify-between h-full">
-          <h4 class="text-xl font-semibold text-green-800 mb-2">Clean-up Drive this Weekend</h4>
-          <p class="text-gray-600 mb-4 flex-grow">
-            Join our barangay clean-up drive on October 25 at 7 AM. Meeting point: Barangay Hall.
-          </p>
-          <div class="flex items-center justify-between border-t pt-3 bg-gray-50 mt-auto">
-            <p class="text-sm text-gray-500 whitespace-nowrap mr-4">Posted: Oct 18, 2025</p>
-            <div class="flex items-center gap-2">
-              <button class="editBtn bg-green-500 text-white px-3 py-1 rounded hover:bg-yellow-500 transition text-sm">Edit</button>
-              <button class="deleteBtn bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition text-sm">Delete</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Announcement 2 -->
-        <div class="bg-white shadow-md rounded-xl p-6 hover:shadow-xl transition flex flex-col justify-between h-full">
-          <h4 class="text-xl font-semibold text-green-800 mb-2">Water Interruption Notice</h4>
-          <p class="text-gray-600 mb-4 flex-grow">
-            Scheduled maintenance on October 22 from 9 AM to 4 PM. Please store enough water in advance.
-          </p>
-          <div class="flex items-center justify-between border-t pt-3 bg-gray-50 mt-auto">
-            <p class="text-sm text-gray-500 whitespace-nowrap mr-4">Posted: Oct 17, 2025</p>
-            <div class="flex items-center gap-2">
-              <button class="editBtn bg-green-500 text-white px-3 py-1 rounded hover:bg-yellow-500 transition text-sm">Edit</button>
-              <button class="deleteBtn bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition text-sm">Delete</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Announcement 3 -->
-        <div class="bg-white shadow-md rounded-xl p-6 hover:shadow-xl transition flex flex-col justify-between h-full">
-          <h4 class="text-xl font-semibold text-green-800 mb-2">Community Meeting</h4>
-          <p class="text-gray-600 mb-4 flex-grow">
-            All residents are invited to the community meeting at 5 PM, October 28, Barangay Hall.
-          </p>
-          <div class="flex items-center justify-between border-t pt-3 bg-gray-50 mt-auto">
-            <p class="text-sm text-gray-500 whitespace-nowrap mr-4">Posted: Oct 19, 2025</p>
-            <div class="flex items-center gap-2">
-              <button class="editBtn bg-green-500 text-white px-3 py-1 rounded hover:bg-yellow-500 transition text-sm">Edit</button>
-              <button class="deleteBtn bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition text-sm">Delete</button>
-            </div>
-          </div>
-        </div>
-
-      </div>
+      <div id="announcementsGrid" class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12"></div>
 
 <!-- News Carousel -->
 <div class="relative overflow-hidden">
-  <div id="newsCarousel" class="flex transition-transform duration-700 ease-in-out">
-
-    <!-- News 1 -->
-    <a href="https://www.philstar.com/headlines/2025/10/23/2481956/deped-declares-wellness-break-public-schools-oct-2730"
-       target="_blank" class="flex-shrink-0 w-full md:w-1/3 p-3 newsCard">
-      <div class="bg-white shadow-md rounded-xl overflow-hidden flex flex-col h-full hover:shadow-lg transition relative">
-        <img src="Images/deped.jpg" alt="DepEd Wellness Break" class="w-full h-48 object-cover">
-        <div class="p-5 flex flex-col flex-grow">
-          <h3 class="text-lg font-semibold text-green-800 mb-2">
-            DepEd declares 'wellness break' for public schools Oct. 27–30
-          </h3>
-          <p class="text-gray-600 text-sm mb-4 flex-grow">
-            DepEd has declared a four-day “wellness break”...
-          </p>
-        </div>
-        <div class="border-t px-5 py-3 bg-gray-50 flex justify-between items-center">
-          <p class="text-sm text-gray-500">Posted: Oct 23, 2025</p>
-          <div class="flex gap-2">
-            <button class="editNewsBtn bg-green-500 text-white px-2 py-1 rounded hover:bg-yellow-500 transition text-xs">Edit</button>
-            <button class="deleteNewsBtn bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 transition text-xs">Delete</button>
-          </div>
-        </div>
-      </div>
-    </a>
-
-    <!-- News 2 -->
-    <a href="https://www.pna.gov.ph/articles/1260968" target="_blank" class="flex-shrink-0 w-full md:w-1/3 p-3 newsCard">
-      <div class="bg-white shadow-md rounded-xl overflow-hidden flex flex-col h-full hover:shadow-lg transition relative">
-        <img src="Images/doh.jpg" alt="DOH Announcement" class="w-full h-48 object-cover">
-        <div class="p-5 flex flex-col flex-grow">
-          <h3 class="text-lg font-semibold text-green-800 mb-2">
-            DOH: No outbreak of influenza-like illnesses
-          </h3>
-          <p class="text-gray-600 text-sm mb-4 flex-grow">
-            DOH Secretary Herbosa clarified that there is no outbreak of influenza-like illnesses, noting the increase is seasonal.
-          </p>
-        </div>
-        <div class="border-t px-5 py-3 bg-gray-50 flex justify-between items-center">
-          <p class="text-sm text-gray-500">Posted: Oct 22, 2025</p>
-          <div class="flex gap-2">
-            <button class="editNewsBtn bg-green-500 text-white px-2 py-1 rounded hover:bg-yellow-500 transition text-xs">Edit</button>
-            <button class="deleteNewsBtn bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 transition text-xs">Delete</button>
-          </div>
-        </div>
-      </div>
-    </a>
-
-    <!-- News 3 -->
-    <a href="https://images.gmanews.tv/webpics/2023/10/fireworksfactory_2023-10-29_18-35-20.jpg"
-       target="_blank" class="flex-shrink-0 w-full md:w-1/3 p-3 newsCard">
-      <div class="bg-white shadow-md rounded-xl overflow-hidden flex flex-col h-full hover:shadow-lg transition relative">
-        <img src="Images/explosion.jpg" alt="Fireworks Factory Blast" class="w-full h-48 object-cover">
-        <div class="p-5 flex flex-col flex-grow">
-          <h3 class="text-lg font-semibold text-green-800 mb-2">
-            2 dead, 5 hurt in fireworks factory blast in Bulacan
-          </h3>
-          <p class="text-gray-600 text-sm mb-4 flex-grow">
-            Two people died and five were injured following an explosion in a fireworks factory in Norzagaray, Bulacan.
-          </p>
-        </div>
-        <div class="border-t px-5 py-3 bg-gray-50 flex justify-between items-center">
-          <p class="text-sm text-gray-500">Posted: Oct 21, 2025</p>
-          <div class="flex gap-2">
-            <button class="editNewsBtn bg-green-500 text-white px-2 py-1 rounded hover:bg-yellow-500 transition text-xs">Edit</button>
-            <button class="deleteNewsBtn bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 transition text-xs">Delete</button>
-          </div>
-        </div>
-      </div>
-    </a>
-
-    <!-- News 4 -->
-    <a href="https://newsinfo.inquirer.net/2129606/coa-flags-more-ghost-projects-in-bulacan-in-new-ici-report"
-       target="_blank" class="flex-shrink-0 w-full md:w-1/3 p-3 newsCard">
-      <div class="bg-white shadow-md rounded-xl overflow-hidden flex flex-col h-full hover:shadow-lg transition relative">
-        <img src="Images/coa.jpeg" alt="COA Ghost Projects" class="w-full h-48 object-cover">
-        <div class="p-5 flex flex-col flex-grow">
-          <h3 class="text-lg font-semibold text-green-800 mb-2">
-            COA flags more ghost projects in Bulacan in new ICI report
-          </h3>
-          <p class="text-gray-600 text-sm mb-4 flex-grow">
-            The Commission on Audit uncovered new fraud reports involving ghost and mismatched flood control projects in Bulacan.
-          </p>
-        </div>
-        <div class="border-t px-5 py-3 bg-gray-50 flex justify-between items-center">
-          <p class="text-sm text-gray-500">Posted: Oct 20, 2025</p>
-          <div class="flex gap-2">
-            <button class="editNewsBtn bg-green-500 text-white px-2 py-1 rounded hover:bg-yellow-500 transition text-xs">Edit</button>
-            <button class="deleteNewsBtn bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 transition text-xs">Delete</button>
-          </div>
-        </div>
-      </div>
-    </a>
-
-    <!-- News 5 -->
-    <a href="https://www.philstar.com/headlines/2025/10/24/2482202/bulacan-solon-rejects-link-discayas-flood-control-probe"
-       target="_blank" class="flex-shrink-0 w-full md:w-1/3 p-3 newsCard">
-      <div class="bg-white shadow-md rounded-xl overflow-hidden flex flex-col h-full hover:shadow-lg transition relative">
-        <img src="Images/solon.jpg" alt="Bulacan Solon" class="w-full h-48 object-cover">
-        <div class="p-5 flex flex-col flex-grow">
-          <h3 class="text-lg font-semibold text-green-800 mb-2">
-            Bulacan solon rejects link to Discayas in flood control probe
-          </h3>
-          <p class="text-gray-600 text-sm mb-4 flex-grow">
-            Rep. Salvador Pleyto rejected allegations linking him to alleged irregular flood control project transactions.
-          </p>
-        </div>
-        <div class="border-t px-5 py-3 bg-gray-50 flex justify-between items-center">
-          <p class="text-sm text-gray-500">Posted: Oct 24, 2025</p>
-          <div class="flex gap-2">
-            <button class="editNewsBtn bg-green-500 text-white px-2 py-1 rounded hover:bg-yellow-500 transition text-xs">Edit</button>
-            <button class="deleteNewsBtn bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 transition text-xs">Delete</button>
-          </div>
-        </div>
-      </div>
-    </a>
-
-    <!-- News 6 -->
-    <a href="https://philstarlife.com/news-and-views/998420-phivolcs-three-minor-eruptions-taal-volcano"
-       target="_blank" class="flex-shrink-0 w-full md:w-1/3 p-3 newsCard">
-      <div class="bg-white shadow-md rounded-xl overflow-hidden flex flex-col h-full hover:shadow-lg transition relative">
-        <img src="Images/taal.jpg" alt="Taal Volcano Eruption" class="w-full h-48 object-cover">
-        <div class="p-5 flex flex-col flex-grow">
-          <h3 class="text-lg font-semibold text-green-800 mb-2">
-            PHIVOLCS records three minor eruptions at Taal Volcano
-          </h3>
-          <p class="text-gray-600 text-sm mb-4 flex-grow">
-            PHIVOLCS reported three minor phreatomagmatic eruptions with plumes rising up to 2,100 meters above the crater.
-          </p>
-        </div>
-        <div class="border-t px-5 py-3 bg-gray-50 flex justify-between items-center">
-          <p class="text-sm text-gray-500">Posted: Oct 25, 2025</p>
-          <div class="flex gap-2">
-            <button class="editNewsBtn bg-green-500 text-white px-2 py-1 rounded hover:bg-yellow-500 transition text-xs">Edit</button>
-            <button class="deleteNewsBtn bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 transition text-xs">Delete</button>
-          </div>
-        </div>
-      </div>
-    </a>
-
-  </div>
+  <div id="newsCarousel" class="flex transition-transform duration-700 ease-in-out"></div>
 
         <!-- Carousel Controls -->
         <button id="prevBtn"
@@ -400,12 +221,9 @@
     </div>
   </section>
 </section>
-<!-- Announcement Section Ends -->
 
 
-
-
-<!-- Chart Section Starts -->
+<!-- Chart Section -->
 <section id="sectionCharts" class="">
   <section class="bg-gray-100 outline-gray-300 px-6 max-w-6xl mx-auto mb-24 mt-10 bg-white rounded-2xl shadow-md p-10">
 
@@ -442,11 +260,8 @@
 
   </section>
 </section>
-<!-- Chart Section Ends -->
 
-
-
-<!-- Report Section Starts -->
+<!-- Report Section -->
 <section id="sectionReports" class="hidden">
 
   <!-- Search Input -->
@@ -477,15 +292,15 @@
   <div class="bg-white border border-gray-300 shadow-md rounded-xl p-6 overflow-x-auto">
 
     <!-- Header Row -->
-    <div class="flex items-center justify-between mb-4">
+     <div class="flex items-center justify-between mb-4">
       <h2 class="text-xl font-semibold text-green-900">Submitted Reports</h2>
 
-      <!-- Download Dropdown -->
       <div class="relative inline-block text-left">
         <button 
           id="downloadMenuBtn" 
-          class="bg-green-900 text-white px-4 py-2 rounded-lg hover:bg-green-800 transition"
-          title="Download data">Download
+          class="bg-green-900 text-white px-4 py-2 rounded-lg hover:bg-green-800 transition flex items-center"
+          title="Download data">
+          <i class="fas fa-download mr-2"></i>Download
         </button>
 
         <div 
@@ -536,21 +351,59 @@
 <!-- Audit Log Section Starts -->
 <section id="sectionAuditLog" class="hidden">
 
-  <div class="flex justify-start mb-4">
+  <div class="mb-6">
+    <h2 class="text-2xl font-semibold text-green-900">Admin Audit Log</h2>
+  </div>
+
+  <div class="flex flex-col md:flex-row gap-4 mb-4">
+    
     <input 
       type="text" 
       id="auditLogSearchInput"
       placeholder="Search by user, action, or description"
-      class="border border-gray-300 rounded-lg px-4 py-2 w-96 focus:outline-none focus:ring-2 focus:ring-green-700 shadow-sm"
+      class="border border-gray-300 rounded-lg px-4 py-2 flex-grow focus:outline-none focus:ring-2 focus:ring-green-700 shadow-sm"
     >
+
+    <div class="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+      
+      <select 
+        id="auditDateFilter"
+        class="border border-gray-300 rounded-lg px-4 py-2 w-full md:w-auto focus:outline-none focus:ring-2 focus:ring-green-700 shadow-sm cursor-pointer"
+      >
+        <option value="all-time">All Time</option>
+        <option value="today">Today</option>
+        <option value="past-week">Past Week</option>
+        <option value="past-month">Past Month</option>
+        <option value="past-year">Past Year</option>
+      </select>
+
+      <div class="relative inline-block text-left w-full md:w-auto">
+        <button 
+          id="auditDownloadBtn" 
+          class="bg-green-900 text-white px-4 py-2 rounded-lg hover:bg-green-800 transition w-full md:w-auto flex items-center justify-center"
+          title="Download log">
+          <i class="fas fa-download mr-2"></i>Download
+        </button>
+
+        <div 
+          id="auditDownloadMenu"
+          class="hidden absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-md z-20">
+          <button onclick="downloadAuditCSV()" class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">
+            Download CSV
+          </button>
+          <button onclick="downloadAuditExcel()" class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">
+            Download Excel
+          </button>
+          <button onclick="downloadAuditPDF()" class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">
+            Download PDF
+          </button>
+        </div>
+      </div>
+      
+    </div>
   </div>
 
   <div class="bg-white border border-gray-300 shadow-md rounded-xl p-6 overflow-x-auto">
-
-    <div class="flex items-center justify-between mb-4">
-      <h2 class="text-xl font-semibold text-green-900">Admin Audit Log</h2>
-    </div>
-
     <table class="min-w-full table-auto border-collapse">
       <thead>
         <tr class="bg-green-100 text-green-900 text-center">
@@ -560,8 +413,7 @@
           <th class="px-4 py-2 border">Description</th>
         </tr>
       </thead>
-      
-      <tbody id="auditLogTableBody" class="text-gray-700">
+      <tbody id="auditLogTableBody" class="text-gray-700 text-sm">
         </tbody>
     </table>
   </div>

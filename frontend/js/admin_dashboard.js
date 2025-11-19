@@ -1,219 +1,248 @@
-let mapInstance = null; // To hold the Leaflet map instance
+// =======================
+// GLOBAL VARIABLES
+// =======================
+let mapInstance = null; 
+let allReports = [];
+let filteredReports = [];
+let allSuggestions = [];
+let currentSuggestionId = null;
+
+// Sample Audit Log Data (Moved to top)
+const auditLogData = [
+    { timestamp: "2025-11-11 15:30:01", user: "admin", actionType: "LOGIN_SUCCESS", description: "Admin 'admin' successfully logged in." },
+    { timestamp: "2025-11-11 15:31:05", user: "admin", actionType: "ANNOUNCEMENT_CREATE", description: "Created new announcement: 'Clean-up Drive this Weekend'" },
+    { timestamp: "2025-11-11 15:32:14", user: "admin", actionType: "REPORT_STATUS_UPDATE", description: "Changed status of report TR-001 from 'Pending' to 'In Progress'" },
+    { timestamp: "2025-11-11 15:35:20", user: "admin", actionType: "LOGIN_FAIL", description: "Failed login attempt for user 'guest'" }
+];
+let filteredAuditLogs = [...auditLogData];
 
 // =======================
 // SIDEBAR
 // =======================
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const sidebar = document.getElementById('sidebar');
-    const icon = sidebarToggle.querySelector('i');
+const sidebarToggle = document.getElementById('sidebarToggle');
+const sidebar = document.getElementById('sidebar');
+const icon = sidebarToggle ? sidebarToggle.querySelector('i') : null;
 
-    // Toggle Sidebar visibility
+// Toggle Sidebar visibility
+if (sidebarToggle && sidebar) {
     sidebarToggle.addEventListener('click', (event) => {
-      event.stopPropagation();
-      sidebar.classList.toggle('-translate-x-full');
-      icon.classList.add('fa-bars');
+        event.stopPropagation();
+        sidebar.classList.toggle('-translate-x-full');
+        icon.classList.add('fa-bars');
     });
+}
 
-    // Function to switch visible sections
-    function showSection(sectionId) {
-      const sections = ['sectionAnnouncements', 'sectionCharts', 'sectionReports', 'sectionAuditLog','sectionSuggestions'];
-      const buttons = {
+// Function to switch visible sections
+function showSection(sectionId) {
+    const sections = ['sectionAnnouncements', 'sectionCharts', 'sectionReports', 'sectionAuditLog', 'sectionSuggestions'];
+    const buttons = {
         sectionAnnouncements: document.getElementById('btnAnnouncements'),
         sectionCharts: document.getElementById('btnCharts'),
         sectionReports: document.getElementById('btnReports'),
         sectionAuditLog: document.getElementById('btnAuditLog'),
         sectionSuggestions: document.getElementById('btnSuggestions')
-      };
+    };
 
-      // Show selected section, hide others
-      sections.forEach(sec => {
-        document.getElementById(sec).style.display = (sec === sectionId) ? 'block' : 'none';
-      });
-
-      // Disable active button
-      Object.entries(buttons).forEach(([id, btn]) => {
-        if (!btn) return; 
-        if (id === sectionId) {
-          btn.classList.add('bg-green-900', 'cursor-not-allowed', 'opacity-70');
-          btn.disabled = true;
-        } else {
-          btn.classList.remove('bg-green-900', 'cursor-not-allowed', 'opacity-70');
-          btn.disabled = false;
-        }
-      });
-
-      // Hide sidebar after selection
-      sidebar.classList.add('-translate-x-full');
-      icon.classList.add('fa-bars');
-      icon.classList.remove('fa-xmark');
-    }
-
-    // Hide sidebar when clicking the arrow icon
-    const hideSidebar = document.getElementById('hideSidebar');
-
-    if (hideSidebar) {
-      hideSidebar.addEventListener('click', () => {
-        sidebar.classList.add('-translate-x-full');
-        icon.classList.add('fa-bars');
-      });
-    }
-    
-    // Hide sidebar when clicking outside
-    document.addEventListener('click', (event) => {
-      const isClickInsideSidebar = sidebar.contains(event.target);
-      const isClickOnToggle = sidebarToggle.contains(event.target);
-
-      if (!isClickInsideSidebar && !isClickOnToggle) {
-        sidebar.classList.add('-translate-x-full');
-        icon.classList.add('fa-bars');
-        icon.classList.remove('fa-xmark');
-      }
+    // Show selected section, hide others
+    sections.forEach(sec => {
+        const el = document.getElementById(sec);
+        if (el) el.style.display = (sec === sectionId) ? 'block' : 'none';
     });
 
-    
+    // Disable active button
+    Object.entries(buttons).forEach(([id, btn]) => {
+        if (!btn) return;
+        if (id === sectionId) {
+            btn.classList.add('bg-green-900', 'cursor-not-allowed', 'opacity-70');
+            btn.disabled = true;
+        } else {
+            btn.classList.remove('bg-green-900', 'cursor-not-allowed', 'opacity-70');
+            btn.disabled = false;
+        }
+    });
 
-// Automatically open the saved section (like Announcements) after login
-document.addEventListener("DOMContentLoaded", () => {
-  const defaultSection = localStorage.getItem("defaultSection");
-  if (defaultSection && document.getElementById(defaultSection)) {
-    showSection(defaultSection);
-    localStorage.removeItem("defaultSection"); // clear it once used
-  } else {
-    showSection('sectionAnnouncements'); // fallback if none saved
-  }
+    // Hide sidebar after selection
+    if (sidebar) {
+        sidebar.classList.add('-translate-x-full');
+        if (icon) {
+            icon.classList.add('fa-bars');
+            icon.classList.remove('fa-xmark');
+        }
+    }
+}
 
-  populateAuditLog(auditLogData);
-  fetchReports();
-  fetchSuggestions();
-  fetchDashboardStats();
-  fetchAnnouncements();
-  fetchNews();
+// Hide sidebar when clicking the arrow icon
+const hideSidebar = document.getElementById('hideSidebar');
+if (hideSidebar && sidebar) {
+    hideSidebar.addEventListener('click', () => {
+        sidebar.classList.add('-translate-x-full');
+        if (icon) icon.classList.add('fa-bars');
+    });
+}
+
+// Hide sidebar when clicking outside
+document.addEventListener('click', (event) => {
+    if (sidebar && sidebarToggle) {
+        const isClickInsideSidebar = sidebar.contains(event.target);
+        const isClickOnToggle = sidebarToggle.contains(event.target);
+
+        if (!isClickInsideSidebar && !isClickOnToggle) {
+            sidebar.classList.add('-translate-x-full');
+            if (icon) {
+                icon.classList.add('fa-bars');
+                icon.classList.remove('fa-xmark');
+            }
+        }
+    }
 });
 
 
-  const carousel = document.getElementById('newsCarousel');
-  const totalSlides = carousel.children.length;
-  const visibleSlides = 3;
-  let index = 0;
-
-  const updateCarousel = () => {
-    carousel.style.transform = `translateX(-${index * (100 / visibleSlides)}%)`;
-  };
-
-  document.getElementById('nextBtn').addEventListener('click', () => {
-    if (index < totalSlides - visibleSlides) index++;
-    else index = 0;
-    updateCarousel();
-  });
-
-  document.getElementById('prevBtn').addEventListener('click', () => {
-    if (index > 0) index--;
-    else index = totalSlides - visibleSlides;
-    updateCarousel();
-  });
-
-  // Auto-slide every 10 seconds
-  setInterval(() => {
-    if (index < totalSlides - visibleSlides) index++;
-    else index = 0;
-    updateCarousel();
-  }, 10000);
-
-  
 // =======================
-// CHART SECTION (NEW)
+// NEWS CAROUSEL LOGIC
+// =======================
+const carousel = document.getElementById('newsCarousel');
+const nextBtn = document.getElementById('nextBtn');
+const prevBtn = document.getElementById('prevBtn');
+
+if (carousel) {
+    const totalSlides = carousel.children.length;
+    const visibleSlides = 3;
+    let index = 0;
+
+    const updateCarousel = () => {
+        carousel.style.transform = `translateX(-${index * (100 / visibleSlides)}%)`;
+    };
+
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            if (index < totalSlides - visibleSlides) index++;
+            else index = 0;
+            updateCarousel();
+        });
+    }
+
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            if (index > 0) index--;
+            else index = totalSlides - visibleSlides;
+            updateCarousel();
+        });
+    }
+
+    // Auto-slide every 10 seconds
+    setInterval(() => {
+        if (index < totalSlides - visibleSlides) index++;
+        else index = 0;
+        updateCarousel();
+    }, 10000);
+}
+
+
+// =======================
+// CHART SECTION
 // =======================
 function initDashboardCharts(stats) {
     const categories = stats.map(s => s.category);
     const reported = stats.map(s => s.reported);
     const solved = stats.map(s => s.solved);
 
-    const colors = ['#72C93B','#28A745','#F2C94C','#3498DB','#A0522D', '#FF5733', '#C70039'];
+    const colors = ['#72C93B', '#28A745', '#F2C94C', '#3498DB', '#A0522D', '#FF5733', '#C70039'];
     const chartColors = categories.map((_, i) => colors[i % colors.length]);
 
-    const totalReported = reported.reduce((a,b) => a+b, 0);
-    const totalSolved = solved.reduce((a,b) => Number(a) + Number(b), 0);
-    document.getElementById('reportedTotal').textContent = totalReported;
-    document.getElementById('solvedTotal').textContent = totalSolved;
+    const totalReported = reported.reduce((a, b) => a + b, 0);
+    const totalSolved = solved.reduce((a, b) => Number(a) + Number(b), 0);
+
+    if (document.getElementById('reportedTotal')) document.getElementById('reportedTotal').textContent = totalReported;
+    if (document.getElementById('solvedTotal')) document.getElementById('solvedTotal').textContent = totalSolved;
+    
     const resolvedPercent = totalReported > 0 ? ((totalSolved / totalReported) * 100).toFixed(1) : 0;
-    document.getElementById('resolvedPercent').textContent = resolvedPercent + '%';
+    if (document.getElementById('resolvedPercent')) document.getElementById('resolvedPercent').textContent = resolvedPercent + '%';
 
     // Bar Chart
     const barChartEl = document.getElementById('barChart');
-    if (window.myBarChart) {
-        window.myBarChart.destroy(); 
-    }
-    window.myBarChart = new Chart(barChartEl, {
-        type: 'bar',
-        data: {
-        labels: categories,
-        datasets: [
-            {
-            label: 'Reported Issues',
-            data: reported,
-            backgroundColor: 'red',
-            borderRadius: 4
-            },
-            {
-            label: 'Solved Reports',
-            data: solved,
-            backgroundColor: 'green',
-            borderRadius: 4
-            }
-        ]
-        },
-        options: {
-            responsive: true,
-            scales: { y: { beginAtZero: true, ticks: { stepSize: 10 } } },
-            plugins: { legend: { position: 'top' } }
+    if (barChartEl) {
+        if (window.myBarChart) {
+            window.myBarChart.destroy();
         }
-    });
-
-    // Types of Reported Issues
-    const pieChartEl = document.getElementById('pieChart');
-    if (window.myPieChart) {
-        window.myPieChart.destroy();
+        window.myBarChart = new Chart(barChartEl, {
+            type: 'bar',
+            data: {
+                labels: categories,
+                datasets: [
+                    {
+                        label: 'Reported Issues',
+                        data: reported,
+                        backgroundColor: 'red',
+                        borderRadius: 4
+                    },
+                    {
+                        label: 'Solved Reports',
+                        data: solved,
+                        backgroundColor: 'green',
+                        borderRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: { y: { beginAtZero: true, ticks: { stepSize: 10 } } },
+                plugins: { legend: { position: 'top' } }
+            }
+        });
     }
-    window.myPieChart = new Chart(pieChartEl, {
-        type: 'pie',
-        data: {
-        labels: categories,
-        datasets: [{
-            data: reported,
-            backgroundColor: chartColors
-        }]
-        },
-        options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        plugins: { 
-            legend: { display: false }, 
-            tooltip: {
-                callbacks: {
-                    label: function(context) {
-                    const label = context.label || '';
-                    const value = context.raw;
-                    const percentage = ((value / totalReported) * 100).toFixed(1) + '%';
-                    return `${label}: ${value} (${percentage})`;
+
+    // Pie Chart
+    const pieChartEl = document.getElementById('pieChart');
+    if (pieChartEl) {
+        if (window.myPieChart) {
+            window.myPieChart.destroy();
+        }
+        window.myPieChart = new Chart(pieChartEl, {
+            type: 'pie',
+            data: {
+                labels: categories,
+                datasets: [{
+                    data: reported,
+                    backgroundColor: chartColors
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                const label = context.label || '';
+                                const value = context.raw;
+                                let percentage = '0%';
+                                if (totalReported > 0) {
+                                    percentage = ((value / totalReported) * 100).toFixed(1) + '%';
+                                }
+                                return `${label}: ${value} (${percentage})`;
+                            }
+                        }
                     }
                 }
             }
-        }
-        }
-    });
+        });
+    }
 
-    // Pie chart legend
+    // Legend
     const legendList = document.getElementById('legendList');
-    legendList.innerHTML = ''; 
-    categories.forEach((label, i) => {
-        const li = document.createElement('li');
-        li.className = 'flex items-center gap-2';
-        li.innerHTML = `
-        <span style="background:${chartColors[i]};width:14px;height:14px;border-radius:4px;"></span>
-        <span class="text-sm text-gray-700">${label}</span>
-        `;
-        legendList.appendChild(li);
-    });
+    if (legendList) {
+        legendList.innerHTML = '';
+        categories.forEach((label, i) => {
+            const li = document.createElement('li');
+            li.className = 'flex items-center gap-2';
+            li.innerHTML = `
+            <span style="background:${chartColors[i]};width:14px;height:14px;border-radius:4px;"></span>
+            <span class="text-sm text-gray-700">${label}</span>
+            `;
+            legendList.appendChild(li);
+        });
+    }
 }
 
 async function fetchDashboardStats() {
@@ -235,30 +264,47 @@ async function fetchDashboardStats() {
     }
 }
 
+
 // =======================
-// ANNOUNCEMENT SECTION 
+// ANNOUNCEMENT SECTION
 // =======================
 const addAnnouncementBtn = document.getElementById('addAnnouncementBtn');
 const announcementForm = document.getElementById('announcementForm');
 const uploadAnnouncementBtn = document.getElementById('uploadAnnouncementBtn');
+const cancelAnnouncementBtn = document.getElementById('cancelAnnouncementBtn');
 const announcementTitle = document.getElementById('announcementTitle');
 const announcementDescription = document.getElementById('announcementDescription');
 const announcementsGrid = document.getElementById('announcementsGrid');
 
-let editingCard = null; // Track the card being edited
-let editingCardId = null; // Track the ID of the card being edited
+let editingAnnCard = null;
+let editingAnnCardId = null;
 
-// Show/hide announcement form
-addAnnouncementBtn.addEventListener('click', () => {
-    announcementForm.classList.toggle('hidden');
-    if (!announcementForm.classList.contains('hidden')) {
-        announcementTitle.focus();
-        uploadAnnouncementBtn.textContent = 'Upload Announcement';
-        editingCard = null; // Clear editing state
-        editingCardId = null;
-    }
-});
+// Show form / Hide Add Button
+if (addAnnouncementBtn) {
+    addAnnouncementBtn.addEventListener('click', () => {
+        announcementForm.classList.remove('hidden');
+        addAnnouncementBtn.classList.add('hidden'); 
+        if (announcementTitle) announcementTitle.focus();
+        if (uploadAnnouncementBtn) uploadAnnouncementBtn.textContent = 'Upload';
+        editingAnnCard = null;
+        editingAnnCardId = null;
+    });
+}
 
+// Cancel Button Logic
+if (cancelAnnouncementBtn) {
+    cancelAnnouncementBtn.addEventListener('click', () => {
+        announcementForm.classList.add('hidden');
+        if (addAnnouncementBtn) addAnnouncementBtn.classList.remove('hidden');
+        
+        if (announcementTitle) announcementTitle.value = '';
+        if (announcementDescription) announcementDescription.value = '';
+        editingAnnCard = null;
+        editingAnnCardId = null;
+    });
+}
+
+// 1. FETCH announcements
 async function fetchAnnouncements() {
     try {
         const response = await fetch('/api/announcements');
@@ -273,14 +319,10 @@ async function fetchAnnouncements() {
     }
 }
 
-// 2. RENDER all announcements to the grid
+// 2. RENDER announcements
 function renderAnnouncements(announcements) {
     if (!announcementsGrid) return;
-    announcementsGrid.innerHTML = ''; // Clear the grid
-
-    // Delete the static cards you had in your HTML
-    const staticCards = document.querySelectorAll('#announcementsGrid .bg-white[shadow-md]');
-    staticCards.forEach(card => card.remove());
+    announcementsGrid.innerHTML = '';
 
     if (announcements.length === 0) {
         announcementsGrid.innerHTML = '<p class="text-gray-500">No announcements yet.</p>';
@@ -297,7 +339,7 @@ function renderAnnouncements(announcements) {
 function createAnnouncementCard(ann) {
     const card = document.createElement('div');
     card.className = 'bg-white shadow-md rounded-xl p-6 hover:shadow-xl transition flex flex-col justify-between h-full';
-    card.dataset.id = ann.id; 
+    card.dataset.id = ann.id;
 
     card.innerHTML = `
         <h4 class="text-xl font-semibold text-green-800 mb-2">${ann.title}</h4>
@@ -313,13 +355,16 @@ function createAnnouncementCard(ann) {
 
     // Edit button
     card.querySelector('.editBtn').addEventListener('click', () => {
-        editingCard = card;
-        editingCardId = ann.id;
-        announcementTitle.value = ann.title;
-        announcementDescription.value = ann.description;
-        announcementForm.classList.remove('hidden');
-        uploadAnnouncementBtn.textContent = 'Save Changes';
-        announcementTitle.focus();
+        editingAnnCard = card;
+        editingAnnCardId = ann.id;
+        if (announcementTitle) announcementTitle.value = ann.title;
+        if (announcementDescription) announcementDescription.value = ann.description;
+
+        if (announcementForm) announcementForm.classList.remove('hidden');
+        if (addAnnouncementBtn) addAnnouncementBtn.classList.add('hidden');
+
+        if (uploadAnnouncementBtn) uploadAnnouncementBtn.textContent = 'Save Changes';
+        if (announcementTitle) announcementTitle.focus();
     });
 
     // Delete button
@@ -329,7 +374,7 @@ function createAnnouncementCard(ann) {
                 const response = await fetch(`/api/announcements/${ann.id}`, { method: 'DELETE' });
                 const result = await response.json();
                 if (result.success) {
-                    card.remove(); 
+                    card.remove();
                 } else {
                     alert('Error deleting: ' + result.message);
                 }
@@ -342,79 +387,99 @@ function createAnnouncementCard(ann) {
     return card;
 }
 
-uploadAnnouncementBtn.addEventListener('click', async () => {
-    const title = announcementTitle.value.trim();
-    const description = announcementDescription.value.trim();
+// 4. UPLOAD announcement
+if (uploadAnnouncementBtn) {
+    uploadAnnouncementBtn.addEventListener('click', async () => {
+        const title = announcementTitle.value.trim();
+        const description = announcementDescription.value.trim();
 
-    if (!title || !description) {
-        alert('Please enter both title and description.');
-        return;
-    }
-
-    try {
-        let response;
-        if (editingCardId) {
-            // UPDATE (PATCH request)
-            response = await fetch(`/api/announcements/${editingCardId}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title, description })
-            });
-        } else {
-            // CREATE (POST request)
-            response = await fetch('/api/announcements', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title, description })
-            });
+        if (!title || !description) {
+            alert('Please enter both title and description.');
+            return;
         }
 
-        const result = await response.json();
+        try {
+            let response;
+            if (editingAnnCardId) {
+                response = await fetch(`/api/announcements/${editingAnnCardId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, description })
+                });
+            } else {
+                response = await fetch('/api/announcements', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, description })
+                });
+            }
 
-        if (result.success) {
-            announcementTitle.value = '';
-            announcementDescription.value = '';
-            announcementForm.classList.add('hidden');
-            editingCard = null;
-            editingCardId = null;
+            const result = await response.json();
 
-            fetchAnnouncements();
-        } else {
-            alert('Error saving announcement: ' + result.message);
+            if (result.success) {
+                announcementTitle.value = '';
+                announcementDescription.value = '';
+                announcementForm.classList.add('hidden');
+                if (addAnnouncementBtn) addAnnouncementBtn.classList.remove('hidden');
+
+                editingAnnCard = null;
+                editingAnnCardId = null;
+
+                fetchAnnouncements();
+            } else {
+                alert('Error saving announcement: ' + result.message);
+            }
+        } catch (err) {
+            alert('Network error saving announcement.');
         }
-    } catch (err) {
-        alert('Network error saving announcement.');
-    }
-});
+    });
+}
 
 
 // =======================
-// NEWS SECTION (NEW)
+// NEWS SECTION
 // =======================
 const addNewsBtn = document.getElementById('addNewsBtn');
 const newsForm = document.getElementById('newsForm');
 const uploadNewsBtn = document.getElementById('uploadNewsBtn');
+const cancelNewsBtn = document.getElementById('cancelNewsBtn');
 const newsTitle = document.getElementById('newsTitle');
 const newsDescription = document.getElementById('newsDescription');
 const newsLink = document.getElementById('newsLink');
 const newsImage = document.getElementById('newsImage');
 const newsCarousel = document.getElementById('newsCarousel');
 
-let editingNews = null; // Track the card being edited
-let editingNewsId = null; // Track the ID
+let editingNews = null;
+let editingNewsId = null;
 
-// Show/hide news form
-addNewsBtn.addEventListener('click', () => {
-    newsForm.classList.toggle('hidden');
-    if (!newsForm.classList.contains('hidden')) {
-        newsTitle.focus();
-        uploadNewsBtn.textContent = 'Upload News';
+// Show form / Hide Add Button
+if (addNewsBtn) {
+    addNewsBtn.addEventListener('click', () => {
+        newsForm.classList.remove('hidden');
+        addNewsBtn.classList.add('hidden');
+        if (newsTitle) newsTitle.focus();
+        if (uploadNewsBtn) uploadNewsBtn.textContent = 'Upload';
         editingNews = null;
         editingNewsId = null;
-    }
-});
+    });
+}
 
-// 1. FETCH all news from the API
+// Cancel Button Logic
+if (cancelNewsBtn) {
+    cancelNewsBtn.addEventListener('click', () => {
+        newsForm.classList.add('hidden');
+        if (addNewsBtn) addNewsBtn.classList.remove('hidden');
+
+        if (newsTitle) newsTitle.value = '';
+        if (newsDescription) newsDescription.value = '';
+        if (newsImage) newsImage.value = '';
+        if (newsLink) newsLink.value = '';
+        editingNews = null;
+        editingNewsId = null;
+    });
+}
+
+// 1. FETCH news
 async function fetchNews() {
     try {
         const response = await fetch('/api/news');
@@ -429,14 +494,10 @@ async function fetchNews() {
     }
 }
 
-// 2. RENDER all news to the carousel
+// 2. RENDER news
 function renderNews(newsItems) {
     if (!newsCarousel) return;
-    newsCarousel.innerHTML = ''; // Clear the carousel
-
-    // Delete the static cards you had in your HTML
-    const staticCards = document.querySelectorAll('#newsCarousel a.flex-shrink-0');
-    staticCards.forEach(card => card.remove());
+    newsCarousel.innerHTML = '';
 
     if (newsItems.length === 0) {
         newsCarousel.innerHTML = '<p class="p-4 text-gray-500">No news items yet.</p>';
@@ -449,7 +510,7 @@ function renderNews(newsItems) {
     });
 }
 
-// 3. CREATE a single news card
+// 3. CREATE news card
 function createNewsCard(item) {
     const card = document.createElement('a');
     card.href = item.linkUrl || '#';
@@ -479,13 +540,16 @@ function createNewsCard(item) {
         e.preventDefault();
         editingNews = card;
         editingNewsId = item.id;
-        newsTitle.value = item.title;
-        newsDescription.value = item.description;
-        newsImage.value = item.imageUrl;
-        newsLink.value = item.linkUrl;
-        newsForm.classList.remove('hidden');
-        uploadNewsBtn.textContent = 'Save Changes';
-        newsTitle.focus();
+        if (newsTitle) newsTitle.value = item.title;
+        if (newsDescription) newsDescription.value = item.description;
+        if (newsImage) newsImage.value = item.imageUrl;
+        if (newsLink) newsLink.value = item.linkUrl;
+
+        if (newsForm) newsForm.classList.remove('hidden');
+        if (addNewsBtn) addNewsBtn.classList.add('hidden');
+
+        if (uploadNewsBtn) uploadNewsBtn.textContent = 'Save Changes';
+        if (newsTitle) newsTitle.focus();
     });
 
     // Delete
@@ -496,7 +560,7 @@ function createNewsCard(item) {
                 const response = await fetch(`/api/news/${item.id}`, { method: 'DELETE' });
                 const result = await response.json();
                 if (result.success) {
-                    card.remove(); // Remove card from UI
+                    card.remove();
                 } else {
                     alert('Error deleting: ' + result.message);
                 }
@@ -509,66 +573,64 @@ function createNewsCard(item) {
     return card;
 }
 
-// 4. UPLOAD (Create or Update) news item
-uploadNewsBtn.addEventListener('click', async () => {
-    const title = newsTitle.value.trim();
-    const description = newsDescription.value.trim();
-    const image = newsImage.value.trim();
-    const link = newsLink.value.trim();
+// 4. UPLOAD news
+if (uploadNewsBtn) {
+    uploadNewsBtn.addEventListener('click', async () => {
+        const title = newsTitle.value.trim();
+        const description = newsDescription.value.trim();
+        const image = newsImage.value.trim();
+        const link = newsLink.value.trim();
 
-    if (!title || !description || !image) {
-        alert('Please enter title, description, and image URL.');
-        return;
-    }
-
-    const data = { title, description, image, link };
-
-    try {
-        let response;
-        if (editingNewsId) {
-            // UPDATE (PATCH request)
-            response = await fetch(`/api/news/${editingNewsId}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-        } else {
-            // CREATE (POST request)
-            response = await fetch('/api/news', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
+        if (!title || !description || !image) {
+            alert('Please enter title, description, and image URL.');
+            return;
         }
 
-        const result = await response.json();
+        const data = { title, description, image, link };
 
-        if (result.success) {
-            // Reset form
-            newsTitle.value = '';
-            newsDescription.value = '';
-            newsImage.value = '';
-            newsLink.value = '';
-            newsForm.classList.add('hidden');
-            editingNews = null;
-            editingNewsId = null;
+        try {
+            let response;
+            if (editingNewsId) {
+                response = await fetch(`/api/news/${editingNewsId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+            } else {
+                response = await fetch('/api/news', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+            }
 
-            // Refresh the list from the server
-            fetchNews();
-        } else {
-            alert('Error saving news: ' + result.message);
+            const result = await response.json();
+
+            if (result.success) {
+                newsTitle.value = '';
+                newsDescription.value = '';
+                newsImage.value = '';
+                newsLink.value = '';
+                newsForm.classList.add('hidden');
+                if (addNewsBtn) addNewsBtn.classList.remove('hidden');
+
+                editingNews = null;
+                editingNewsId = null;
+
+                fetchNews();
+            } else {
+                alert('Error saving news: ' + result.message);
+            }
+        } catch (err) {
+            alert('Network error saving news.');
         }
-    } catch (err) {
-        alert('Network error saving news.');
-    }
-});
+    });
+}
 
 
 // =======================
 // REPORTS TABLE SECTION
 // =======================
-let allReports = []; // This will hold the *original* data from the database
-let filteredReports = []; // This will hold the *currently visible* data
 
 const tableBody = document.getElementById("reportTableBody");
 
@@ -579,7 +641,7 @@ async function fetchReports() {
 
         if (data.success) {
             allReports = data.reports; // Store the fetched reports
-            filteredReports = data.reports; // Initiallize filtered reports--visible
+            filteredReports = data.reports; // Initiallize filtered reports
             populateTable(allReports); // Populate the table
         } else {
             console.error('Failed to load reports:', data.message);
@@ -593,8 +655,40 @@ function populateTable(data) {
     if (!tableBody) return;
     tableBody.innerHTML = ""; // Clear existing table
 
-    // --- (The rest of your populateTable function is the same) ---
-    // (This dynamically creates the image modal)
+    const downloadBtn = document.getElementById("downloadMenuBtn");
+
+    // --- 1. CHECK FOR EMPTY DATA ---
+    if (data.length === 0) {
+        // A. Display "No Records Found" Row
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="10" class="text-center p-10 text-gray-500">
+                    <div class="flex flex-col items-center justify-center">
+                        <i class="fa-solid fa-folder-open text-4xl mb-3 text-gray-300"></i>
+                        <p class="text-lg font-semibold">No Records Found</p>
+                        <p class="text-sm">Try adjusting your search or date filters.</p>
+                    </div>
+                </td>
+            </tr>
+        `;
+
+        // B. Disable Download Button
+        if (downloadBtn) {
+            downloadBtn.disabled = true;
+            downloadBtn.classList.add("opacity-50", "cursor-not-allowed");
+            downloadBtn.classList.remove("hover:bg-green-800");
+        }
+        return; // Stop here
+    }
+
+    // --- 2. DATA EXISTS: RE-ENABLE BUTTON ---
+    if (downloadBtn) {
+        downloadBtn.disabled = false;
+        downloadBtn.classList.remove("opacity-50", "cursor-not-allowed");
+        downloadBtn.classList.add("hover:bg-green-800");
+    }
+
+    // Image Modal
     let imageModal = document.body.querySelector("#imageModal");
     if (!imageModal) {
         imageModal = document.createElement("div");
@@ -615,11 +709,10 @@ function populateTable(data) {
     data.forEach((report, i) => {
         const tr = document.createElement("tr");
         tr.className = "hover:bg-gray-50 transition";
-        
+
         // Helper for image cells
         const imgCell = (paths) => {
             if (!paths) return "-";
-            // Handle multiple images (split by comma)
             const firstPath = paths.split(',')[0];
             return `
             <img src="${firstPath}"
@@ -655,16 +748,16 @@ function populateTable(data) {
             <td class="px-4 py-2 border whitespace-nowrap">${report.date}</td>
             <td class="px-4 py-2 border">
                 <select class="border rounded px-2 py-1" data-id="${report.trackingId}" data-type="status">
-                    <option value="Pending" ${report.status==="Pending"?"selected":""}>Pending</option>
-                    <option value="In Progress" ${report.status==="In Progress"?"selected":""}>In Progress</option>
-                    <option value="Resolved" ${report.status==="Resolved"?"selected":""}>Resolved</option>
+                    <option value="Pending" ${report.status === "Pending" ? "selected" : ""}>Pending</option>
+                    <option value="In Progress" ${report.status === "In Progress" ? "selected" : ""}>In Progress</option>
+                    <option value="Resolved" ${report.status === "Resolved" ? "selected" : ""}>Resolved</option>
                 </select>
             </td>
             <td class="px-4 py-2 border">
                 <span class="w-24 inline-block text-center py-1 rounded-full font-semibold text-white 
-                ${report.priority==='Emergency'?'bg-red-600':
-                  report.priority==='High'?'bg-yellow-500':
-                  'bg-green-600'}">
+                ${report.priority === 'Emergency' ? 'bg-red-600' :
+                report.priority === 'High' ? 'bg-yellow-500' :
+                    'bg-green-600'}">
                   ${report.priority}
                 </span>
             </td>
@@ -672,26 +765,22 @@ function populateTable(data) {
         tableBody.appendChild(tr);
     });
 
-    // --- NEW: Status Update Logic (with API call) ---
+    // --- Status Update Logic ---
     tableBody.querySelectorAll("select").forEach(select => {
-        // This disables the dropdown if status is "Resolved"
         if (select.value === "Resolved") {
             select.disabled = true;
             select.classList.add("opacity-60", "cursor-not-allowed");
         }
-        
+
         select.addEventListener("change", async (e) => {
             const trackingId = e.target.dataset.id;
             const newStatus = e.target.value;
-            // Find the original status from our data array
             const oldValue = allReports.find(r => r.trackingId === trackingId).status;
 
-            // 1. Show confirmation box
             const confirmed = confirm(`Are you sure you want to change status for ${trackingId} to "${newStatus}"?`);
-            
+
             if (confirmed) {
                 try {
-                    // 2. Call the API
                     const response = await fetch(`/api/reports/${trackingId}/status`, {
                         method: 'PATCH',
                         headers: {
@@ -703,29 +792,24 @@ function populateTable(data) {
                     const result = await response.json();
 
                     if (result.success) {
-                        // 3. Success: Disable dropdown if "Resolved"
                         alert('Status updated successfully!');
                         if (newStatus === "Resolved") {
                             e.target.disabled = true;
                             e.target.classList.add("opacity-60", "cursor-not-allowed");
                         }
-                        // Update the data in our local 'allReports' array
                         allReports.find(r => r.trackingId === trackingId).status = newStatus;
                     } else {
-                        // 4. API Error: Revert the change
                         alert('Failed to update status: ' + result.message);
-                        e.target.value = oldValue; // Revert
+                        e.target.value = oldValue;
                     }
 
                 } catch (error) {
-                    // 5. Network Error: Revert the change
                     console.error('Network error:', error);
                     alert('A network error occurred. Please try again.');
-                    e.target.value = oldValue; // Revert
+                    e.target.value = oldValue;
                 }
             } else {
-                // 6. User clicked "Cancel": Revert the change
-                e.target.value = oldValue; 
+                e.target.value = oldValue;
             }
         });
     });
@@ -733,7 +817,7 @@ function populateTable(data) {
     // Image modal Click
     tableBody.querySelectorAll("img[data-img]").forEach(img => img.onclick = e => { modalImage.src = e.target.dataset.img; imageModal.classList.remove("hidden"); });
 
-    // --- Address Modal Click  ---
+    // --- Address Modal Click ---
     const addressModal = document.getElementById('addressModal');
     const modalAddressText = document.getElementById('modalAddressText');
 
@@ -753,9 +837,15 @@ function populateTable(data) {
                     attribution: '© OpenStreetMap'
                 }).addTo(mapInstance);
             } else {
-
                 mapInstance.setView([lat, lng], 16);
             }
+
+            // Clear old markers
+            mapInstance.eachLayer((layer) => {
+                if (layer instanceof L.Marker) {
+                    mapInstance.removeLayer(layer);
+                }
+            });
 
             L.marker([lat, lng]).addTo(mapInstance);
 
@@ -765,43 +855,41 @@ function populateTable(data) {
         });
     });
 
-    // Add close button logic
-    document.getElementById('closeAddressModal').addEventListener('click', () => {
-        addressModal.classList.add('hidden');
-    });
+    if (document.getElementById('closeAddressModal')) {
+        document.getElementById('closeAddressModal').addEventListener('click', () => {
+            addressModal.classList.add('hidden');
+        });
+    }
 
     // --- Description Modal Click ---
-        const descriptionModal = document.getElementById('descriptionModal');
-        const modalDescriptionText = document.getElementById('modalDescriptionText');
-        
-        tableBody.querySelectorAll('.view-desc-btn').forEach((btn, index) => {
-            btn.addEventListener('click', () => {
-                const description = data[index].description;
+    const descriptionModal = document.getElementById('descriptionModal');
+    const modalDescriptionText = document.getElementById('modalDescriptionText');
 
-                modalDescriptionText.textContent = description;
-                
-                descriptionModal.classList.remove('hidden');
-            });
+    tableBody.querySelectorAll('.view-desc-btn').forEach((btn, index) => {
+        btn.addEventListener('click', () => {
+            const description = data[index].description;
+            modalDescriptionText.textContent = description;
+            descriptionModal.classList.remove('hidden');
         });
+    });
 
+    if (document.getElementById('closeDescriptionModal')) {
         document.getElementById('closeDescriptionModal').addEventListener('click', () => {
             descriptionModal.classList.add('hidden');
         });
+    }
 }
 
 
-
-// --- Search and Filter  ---
+// --- Search and Filter ---
 const searchInput = document.getElementById("searchInput");
 const dateRangeFilter = document.getElementById("dateRangeFilter");
 
 // Helper function to get a date as a "YYYY-MM-DD" string
 function getLocalISOString(date) {
     const year = date.getFullYear();
-    // getMonth() is 0-indexed (0=Jan), so add 1
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
-    
     return `${year}-${month}-${day}`;
 }
 
@@ -823,12 +911,11 @@ function applyFilters() {
 
     if (filterValue !== "all-time") {
         const today = new Date();
-        today.setHours(0, 0, 0, 0); 
-        
+        today.setHours(0, 0, 0, 0);
+
         let startDate;
 
         if (filterValue === "today") {
-
             const todayString = getLocalISOString(today);
             filtered = filtered.filter(r => r.date === todayString);
         } else {
@@ -846,9 +933,8 @@ function applyFilters() {
                     startDate.setFullYear(today.getFullYear() - 1);
                     break;
             }
-            
+
             const startDateString = getLocalISOString(startDate);
-            
             filtered = filtered.filter(r => r.date >= startDateString);
         }
     }
@@ -876,7 +962,6 @@ if (downloadMenuBtn) {
         downloadMenu.classList.toggle('hidden');
     });
 
-    // Optional: Hide menu when clicking outside
     document.addEventListener('click', (event) => {
         if (!downloadMenuBtn.contains(event.target) && !downloadMenu.contains(event.target)) {
             downloadMenu.classList.add('hidden');
@@ -887,27 +972,22 @@ if (downloadMenuBtn) {
 // --- Helper function to get the date as YYYY-MM-DD ---
 function getFormattedDate() {
     const today = new Date();
-    // Use our local-aware function
-    return getLocalISOString(today); 
+    return getLocalISOString(today);
 }
 
 // --- CSV Download ---
 function downloadCSV() {
     const dateStr = getFormattedDate();
     const systemName = "E-Sumbong kay Kap! Barangay Pulong Buhangin";
-    
+
     let csv = `${systemName}\n`;
     csv += `Submitted Reports as of ${dateStr}\n\n`;
-    
-    // Add the table headers
     csv += 'Tracking ID,Name,Category,Description,Address,Date Submitted,Status,Priority\n';
-    
-    // ** USE 'allReports' INSTEAD OF 'reports' **
+
     filteredReports.forEach(r => {
-        // Make sure description is "CSV-safe" (in quotes)
         const description = `"${r.description.replace(/"/g, '""')}"`;
         const address = `"${r.address.replace(/"/g, '""')}"`;
-        
+
         csv += `${r.trackingId},${r.name || 'Anonymous'},${r.category},${description},${address},${r.date},${r.status},${r.priority}\n`;
     });
 
@@ -925,38 +1005,28 @@ function downloadExcel() {
     const systemName = "E-Sumbong kay Kap! Barangay Pulong Buhangin";
 
     const wb = XLSX.utils.book_new();
-    
+
     const wsData = [
-        [systemName], 
-        [`Submitted Reports as of ${dateStr}`], 
-        [], 
-        // Updated headers to include Address
-        ["Tracking ID","Name","Category","Description","Address","Date Submitted","Status","Priority"] 
+        [systemName],
+        [`Submitted Reports as of ${dateStr}`],
+        [],
+        ["Tracking ID", "Name", "Category", "Description", "Address", "Date Submitted", "Status", "Priority"]
     ];
-    
-    // ** USE 'allReports' INSTEAD OF 'reports' **
+
     filteredReports.forEach(r => {
         wsData.push([r.trackingId, r.name || 'Anonymous', r.category, r.description, r.address, r.date, r.status, r.priority]);
     });
 
     const ws = XLSX.utils.aoa_to_sheet(wsData);
-    
+
     // Column Widths
     ws['!cols'] = [
-        { wch: 12 }, // Tracking ID
-        { wch: 20 }, // Name
-        { wch: 15 }, // Category
-        { wch: 50 }, // Description
-        { wch: 74 }, // Address 
-        { wch: 15 }, // Date Submitted
-        { wch: 12 }, // Status
-        { wch: 10 }  // Priority
+        { wch: 12 }, { wch: 20 }, { wch: 15 }, { wch: 50 }, { wch: 74 }, { wch: 15 }, { wch: 12 }, { wch: 10 }
     ];
 
-    // Merge header cells
     ws['!merges'] = [
-        { s: { r: 0, c: 0 }, e: { r: 0, c: 7 } }, // Title (spans 8 cols)
-        { s: { r: 1, c: 0 }, e: { r: 1, c: 7 } }  // Subtitle (spans 8 cols)
+        { s: { r: 0, c: 0 }, e: { r: 0, c: 7 } },
+        { s: { r: 1, c: 0 }, e: { r: 1, c: 7 } }
     ];
 
     XLSX.utils.book_append_sheet(wb, ws, "Reports");
@@ -967,28 +1037,23 @@ function downloadExcel() {
 // --- PDF Download ---
 function downloadPDF() {
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ orientation: 'landscape' }); // Use landscape for more columns
+    const doc = new jsPDF({ orientation: 'landscape' });
     const dateStr = getFormattedDate();
     const systemName = "E-Sumbong kay Kap! Barangay Pulong Buhangin";
-    const systemColor = [34, 139, 34]; 
+    const systemColor = [34, 139, 34];
 
-    // Add Logo (logoBase64 is from your logo_data.js)
     if (typeof logoBase64 !== 'undefined' && logoBase64) {
-        doc.addImage(logoBase64, 'PNG', 14, 12, 24, 24); 
+        doc.addImage(logoBase64, 'PNG', 14, 12, 24, 24);
     }
 
-    // Add Header Text
     doc.setFontSize(18);
-    doc.setTextColor(systemColor[0], systemColor[1], systemColor[2]); 
+    doc.setTextColor(systemColor[0], systemColor[1], systemColor[2]);
     doc.text(systemName, 42, 20);
     doc.setFontSize(12);
-    doc.setTextColor(100); 
-    doc.text(`Submitted Reports as of ${dateStr}`, 42, 28); 
+    doc.setTextColor(100);
+    doc.text(`Submitted Reports as of ${dateStr}`, 42, 28);
 
-    // Updated headers
-    const head = [["Tracking ID","Name","Category","Description","Address","Date Submitted","Status","Priority"]];
-    
-    // ** USE 'allReports' INSTEAD OF 'reports' **
+    const head = [["Tracking ID", "Name", "Category", "Description", "Address", "Date Submitted", "Status", "Priority"]];
     const body = filteredReports.map(r => [
         r.trackingId,
         r.name || 'Anonymous',
@@ -1003,17 +1068,16 @@ function downloadPDF() {
     doc.autoTable({
         head,
         body,
-        startY: 40, 
+        startY: 40,
         headStyles: {
             fillColor: systemColor,
             textColor: 255,
             fontStyle: 'bold'
         },
-        // Fit more content
         styles: { fontSize: 8 },
         columnStyles: {
-            3: { cellWidth: 50 }, // Description
-            4: { cellWidth: 50 }  // Address
+            3: { cellWidth: 50 },
+            4: { cellWidth: 50 }
         }
     });
 
@@ -1021,81 +1085,182 @@ function downloadPDF() {
     downloadMenu.classList.add('hidden');
 }
 
+
 // =======================
 // AUDIT LOG SECTION
 // =======================
-const auditLogData = [
-  {
-    timestamp: "2025-11-11 15:30:01",
-    user: "admin",
-    actionType: "LOGIN_SUCCESS",
-    description: "Admin 'admin' successfully logged in."
-  },
-  {
-    timestamp: "2025-11-11 15:31:05",
-    user: "admin",
-    actionType: "ANNOUNCEMENT_CREATE",
-    description: "Created new announcement: 'Clean-up Drive this Weekend'"
-  },
-  {
-    timestamp: "2025-11-11 15:32:14",
-    user: "admin",
-    actionType: "REPORT_STATUS_UPDATE",
-    description: "Changed status of report TR-001 from 'Pending' to 'In Progress'"
-  },
-  {
-    timestamp: "2025-11-11 15:35:20",
-    user: "admin",
-    actionType: "LOGIN_FAIL",
-    description: "Failed login attempt for user 'guest'"
-  }
-];
 
 const auditLogTableBody = document.getElementById('auditLogTableBody');
 const auditLogSearchInput = document.getElementById('auditLogSearchInput');
+const auditDateFilter = document.getElementById('auditDateFilter');
+const auditDownloadBtn = document.getElementById('auditDownloadBtn');
+const auditDownloadMenu = document.getElementById('auditDownloadMenu');
 
-// Fill the table with data
+if (auditDownloadBtn) {
+    auditDownloadBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        auditDownloadMenu.classList.toggle('hidden');
+    });
+    document.addEventListener('click', (e) => {
+        if (!auditDownloadBtn.contains(e.target) && !auditDownloadMenu.contains(e.target)) {
+            auditDownloadMenu.classList.add('hidden');
+        }
+    });
+}
+
 function populateAuditLog(data) {
-  if (!auditLogTableBody) return; 
+    if (!auditLogTableBody) return;
+    auditLogTableBody.innerHTML = "";
 
-  auditLogTableBody.innerHTML = ""; 
+    if (data.length === 0) {
+        auditLogTableBody.innerHTML = `<tr><td colspan="4" class="text-center p-4">No log entries found.</td></tr>`;
+        return;
+    }
 
-  if (data.length === 0) {
-    auditLogTableBody.innerHTML = `<tr><td colspan="4" class="text-center p-4">No log entries found.</td></tr>`;
-    return;
-  }
-
-  data.forEach(log => {
-    const tr = document.createElement('tr');
-    tr.className = "hover:bg-gray-50 transition text-sm";
-    tr.innerHTML = `
-      <td class="px-4 py-2 border">${log.timestamp}</td>
+    data.forEach(log => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-gray-50 transition";
+        tr.innerHTML = `
+      <td class="px-4 py-2 border whitespace-nowrap">${log.timestamp}</td>
       <td class="px-4 py-2 border">${log.user}</td>
-      <td class="px-4 py-2 border font-mono">${log.actionType}</td>
+      <td class="px-4 py-2 border font-mono text-xs">${log.actionType}</td>
       <td class="px-4 py-2 border">${log.description}</td>
     `;
-    auditLogTableBody.appendChild(tr);
-  });
+        auditLogTableBody.appendChild(tr);
+    });
 }
 
-// Search filter
-if (auditLogSearchInput) {
-  auditLogSearchInput.addEventListener("input", e => {
-    const term = e.target.value.toLowerCase();
-    const filtered = auditLogData.filter(log =>
-        log.user.toLowerCase().includes(term) ||
-        log.actionType.toLowerCase().includes(term) ||
-        log.description.toLowerCase().includes(term)
-    );
-    populateAuditLog(filtered);
-  });
+function applyAuditFilters() {
+    const term = auditLogSearchInput.value.toLowerCase();
+    const filterValue = auditDateFilter.value;
+
+    let filtered = auditLogData;
+
+    if (term) {
+        filtered = filtered.filter(log =>
+            log.user.toLowerCase().includes(term) ||
+            log.actionType.toLowerCase().includes(term) ||
+            log.description.toLowerCase().includes(term)
+        );
+    }
+
+    if (filterValue !== "all-time") {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        let startDate;
+        const getLogDateStr = (timestamp) => timestamp.split(' ')[0];
+
+        if (filterValue === "today") {
+            const todayString = getLocalISOString(today);
+            filtered = filtered.filter(log => getLogDateStr(log.timestamp) === todayString);
+        } else {
+            switch (filterValue) {
+                case "past-week":
+                    startDate = new Date(today);
+                    startDate.setDate(today.getDate() - 7);
+                    break;
+                case "past-month":
+                    startDate = new Date(today);
+                    startDate.setMonth(today.getMonth() - 1);
+                    break;
+                case "past-year":
+                    startDate = new Date(today);
+                    startDate.setFullYear(today.getFullYear() - 1);
+                    break;
+            }
+            const startDateString = getLocalISOString(startDate);
+            filtered = filtered.filter(log => getLogDateStr(log.timestamp) >= startDateString);
+        }
+    }
+
+    filteredAuditLogs = filtered;
+    populateAuditLog(filteredAuditLogs);
 }
+
+if (auditLogSearchInput) auditLogSearchInput.addEventListener("input", applyAuditFilters);
+if (auditDateFilter) auditDateFilter.addEventListener("change", applyAuditFilters);
+
+// --- DOWNLOAD FUNCTIONS FOR AUDIT LOG ---
+window.downloadAuditCSV = function () {
+    const dateStr = getFormattedDate();
+    let csv = `Audit Log - E-Sumbong Kay Kap!\nGenerated on: ${dateStr}\n\n`;
+    csv += 'Timestamp,Admin User,Action Type,Description\n';
+
+    filteredAuditLogs.forEach(log => {
+        const desc = `"${log.description.replace(/"/g, '""')}"`;
+        csv += `${log.timestamp},${log.user},${log.actionType},${desc}\n`;
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `Audit_Log_${dateStr}.csv`;
+    link.click();
+    auditDownloadMenu.classList.add('hidden');
+};
+
+window.downloadAuditExcel = function () {
+    const dateStr = getFormattedDate();
+    const wb = XLSX.utils.book_new();
+
+    const wsData = [
+        ["Audit Log - E-Sumbong Kay Kap!"],
+        [`Generated on: ${dateStr}`],
+        [],
+        ["Timestamp", "Admin User", "Action Type", "Description"]
+    ];
+
+    filteredAuditLogs.forEach(log => {
+        wsData.push([log.timestamp, log.user, log.actionType, log.description]);
+    });
+
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    ws['!cols'] = [{ wch: 20 }, { wch: 15 }, { wch: 25 }, { wch: 50 }];
+    ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 3 } }];
+
+    XLSX.utils.book_append_sheet(wb, ws, "Audit Log");
+    XLSX.writeFile(wb, `Audit_Log_${dateStr}.xlsx`);
+    auditDownloadMenu.classList.add('hidden');
+};
+
+window.downloadAuditPDF = function () {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const dateStr = getFormattedDate();
+    const systemColor = [34, 139, 34];
+
+    if (typeof logoBase64 !== 'undefined' && logoBase64) {
+        doc.addImage(logoBase64, 'PNG', 14, 12, 24, 24);
+    }
+
+    doc.setFontSize(18);
+    doc.setTextColor(systemColor[0], systemColor[1], systemColor[2]);
+    doc.text("Audit Log Report", 42, 20);
+    doc.setFontSize(12);
+    doc.setTextColor(100);
+    doc.text(`Generated on: ${dateStr}`, 42, 28);
+
+    const head = [["Timestamp", "User", "Action", "Description"]];
+    const body = filteredAuditLogs.map(log => [log.timestamp, log.user, log.actionType, log.description]);
+
+    doc.autoTable({
+        head,
+        body,
+        startY: 40,
+        headStyles: { fillColor: systemColor, textColor: 255, fontStyle: 'bold' },
+        styles: { fontSize: 9 },
+        columnStyles: { 0: { cellWidth: 35 }, 3: { cellWidth: 80 } }
+    });
+
+    doc.save(`Audit_Log_${dateStr}.pdf`);
+    auditDownloadMenu.classList.add('hidden');
+};
+
 
 // =======================
 // SUGGESTIONS MAILBOX
 // =======================
-let allSuggestions = [];
-let currentSuggestionId = null;
 
 const suggestionListEl = document.getElementById('suggestion-list');
 const placeholderEl = document.getElementById('suggestion-placeholder');
@@ -1106,7 +1271,6 @@ const dateEl = document.getElementById('suggestion-date');
 const bodyEl = document.getElementById('suggestion-body');
 const deleteBtn = document.getElementById('delete-suggestion-btn');
 
-// 1. Fetch all suggestions from the API
 async function fetchSuggestions() {
     try {
         const response = await fetch('/api/suggestions');
@@ -1114,7 +1278,7 @@ async function fetchSuggestions() {
         if (data.success) {
             allSuggestions = data.suggestions;
             renderSuggestionList();
-            showSuggestionContent(null); // Show placeholder
+            showSuggestionContent(null);
         } else {
             console.error('Failed to fetch suggestions:', data.message);
         }
@@ -1123,10 +1287,9 @@ async function fetchSuggestions() {
     }
 }
 
-// 2. Render the list on the left pane
 function renderSuggestionList() {
     if (!suggestionListEl) return;
-    suggestionListEl.innerHTML = ''; // Clear list
+    suggestionListEl.innerHTML = '';
 
     if (allSuggestions.length === 0) {
         suggestionListEl.innerHTML = '<p class="p-4 text-gray-500">No suggestions yet.</p>';
@@ -1148,11 +1311,9 @@ function renderSuggestionList() {
             <p class="text-sm ${isRead ? 'text-gray-500' : 'text-gray-600'} truncate">${s.suggestionText}</p>
         `;
 
-        // 3. Add click event to each item
         item.addEventListener('click', (e) => {
             e.preventDefault();
             showSuggestionContent(s.id);
-            // Mark as read
             if (!isRead) {
                 markAsRead(s.id);
             }
@@ -1162,10 +1323,8 @@ function renderSuggestionList() {
     });
 }
 
-// 4. Show the selected suggestion's content in the right pane
 function showSuggestionContent(id) {
     if (!id) {
-        // No ID, show placeholder
         placeholderEl.classList.remove('hidden');
         contentEl.classList.add('hidden');
         currentSuggestionId = null;
@@ -1177,32 +1336,26 @@ function showSuggestionContent(id) {
 
     currentSuggestionId = id;
 
-    // Fill content
     fromEl.textContent = suggestion.fullname || 'Anonymous';
     emailEl.textContent = suggestion.email || 'N/A';
     dateEl.textContent = suggestion.date;
     bodyEl.textContent = suggestion.suggestionText;
 
-    // Show content, hide placeholder
     placeholderEl.classList.add('hidden');
     contentEl.classList.remove('hidden');
 }
 
-// 5. Call the API to mark a suggestion as read
 async function markAsRead(id) {
     try {
         await fetch(`/api/suggestions/${id}/read`, { method: 'PATCH' });
-        // Update local data
         const suggestion = allSuggestions.find(s => s.id === id);
         suggestion.isRead = 1;
-        // Re-render the list to update styles
         renderSuggestionList();
     } catch (err) {
         console.error('Error marking as read:', err);
     }
 }
 
-// 6. Delete Button logic
 if (deleteBtn) {
     deleteBtn.addEventListener('click', async () => {
         if (!currentSuggestionId) return;
@@ -1214,7 +1367,6 @@ if (deleteBtn) {
 
                 if (result.success) {
                     alert('Suggestion deleted.');
-                    // Refresh the whole list
                     fetchSuggestions();
                 } else {
                     alert('Error deleting: ' + result.message);
@@ -1226,3 +1378,23 @@ if (deleteBtn) {
     });
 }
 
+// =======================
+// INITIALIZATION
+// =======================
+document.addEventListener("DOMContentLoaded", () => {
+    fetchReports();
+    fetchDashboardStats();
+
+    fetchAnnouncements();
+    fetchNews();
+
+    fetchSuggestions();
+
+    populateAuditLog(auditLogData);
+
+    const defaultSection = localStorage.getItem("defaultSection");
+    if (defaultSection && document.getElementById(defaultSection)) {
+        showSection(defaultSection);
+    } else {
+        showSection('sectionAnnouncements');
+}});

@@ -19,7 +19,7 @@
       border-radius: 0.5rem;
       margin-top: 0.5rem;
     }
-    #previewContainer img, #previewContainer video {
+    #previewContainer img, #previewContainer video, #barangayIdPreview img, #evidencePreview img, #evidencePreview video {
       width: 100px;
       height: 100px;
       object-fit: cover;
@@ -30,6 +30,11 @@
     #otherCategoryContainer {
       transition: all 0.3s ease;
     }
+    .preview-item { position: relative; display: inline-block; }
+    .preview-item .remove-btn, .preview-item .zoom-btn {
+      position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.6); color: #fff; border: none; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.75rem;
+    }
+    .preview-item .zoom-btn { right: 26px; }
   </style>
 </head>
 
@@ -152,7 +157,7 @@
   <div>
     <label>Address<span class="text-red-600">*</span></label>
     <p class="text-gray-600">(Street, Barangay, City/Municipality, Province, Postal Code)</p>
-    <input id="address" type="text" required class="w-full border rounded px-3 py-2" placeholder="Click the map to pin location">
+    <input id="address" type="text" required class="w-full border rounded px-3 py-2" placeholder="Click the map to pin location"readonly>
     <input id="lat" type="hidden">
     <input id="lng" type="hidden">
   </div>
@@ -170,8 +175,6 @@
 
 </form>
 <!-- Form Ends -->
-
-
 
 <!-- Confirmation Modal -->
 <div id="confirmModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
@@ -212,7 +215,13 @@
   </div>
 </div>
 
-</main>
+<!-- IMAGE / VIDEO MODALS -->
+<div id="imageModal" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center z-[9999]">
+  <img id="imageModalContent" class="max-w-[90%] max-h-[90%] rounded shadow-2xl border-4 border-white">
+</div>
+<div id="videoModal" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center z-[9999]">
+  <video id="videoModalContent" controls class="max-w-[90%] max-h-[90%] rounded shadow-2xl border-4 border-white"></video>
+</div>
 
   <!-- Footer Starts -->
   <div id="footer-placeholder"></div>
@@ -220,5 +229,126 @@
   <!-- External JS -->
 <script src="js/script.js"></script>
 <script src="js/loader.js"></script>
+
+<!-- Evidence Upload Script -->
+<script>
+const evidenceInput = document.getElementById('evidence');
+const evidencePreview = document.getElementById('evidencePreview');
+let evidenceFiles = [];
+
+function updateEvidencePreview() {
+  evidencePreview.innerHTML = '';
+  evidenceFiles.forEach((file, index) => {
+    const reader = new FileReader();
+    reader.onload = function(e){
+      const div = document.createElement('div');
+      div.className = 'preview-item';
+      if(file.type.startsWith('image/')){
+        div.innerHTML = `
+          <img src="${e.target.result}" alt="preview">
+          <button type="button" class="zoom-btn" onclick="openImageModal('${e.target.result}')"><i class="fas fa-search"></i></button>
+          <button type="button" class="remove-btn" onclick="removeEvidence(${index})"><i class="fas fa-times"></i></button>
+        `;
+      } else if(file.type.startsWith('video/')){
+        div.innerHTML = `
+          <video src="${e.target.result}" class="w-24 h-24 object-cover rounded" controls></video>
+          <button type="button" class="zoom-btn" onclick="openVideoModal('${e.target.result}')"><i class="fas fa-search"></i></button>
+          <button type="button" class="remove-btn" onclick="removeEvidence(${index})"><i class="fas fa-times"></i></button>
+        `;
+      }
+      evidencePreview.appendChild(div);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function removeEvidence(index){
+  evidenceFiles.splice(index,1);
+  updateEvidencePreview();
+}
+
+// On file select
+evidenceInput.addEventListener('change', (e) => {
+  const newFiles = Array.from(e.target.files).slice(0,7 - evidenceFiles.length);
+  evidenceFiles = evidenceFiles.concat(newFiles);
+  updateEvidencePreview();
+  // Clear input to allow re-upload of same file
+  evidenceInput.value = '';
+});
+</script>
+</body>
+</html>
+
+<script>
+  // Preview & Modals
+  function createPreview(file, container, isBarangay=false){
+    const reader=new FileReader();
+    reader.onload=function(e){
+      const div=document.createElement('div');
+      div.className='preview-item';
+      if(file.type.startsWith('image/')){
+        div.innerHTML=`
+          <img src="${e.target.result}" alt="preview">
+          <button type="button" class="zoom-btn" onclick="openImageModal('${e.target.result}')"><i class="fas fa-search"></i></button>
+          <button type="button" class="remove-btn" onclick="removeFile(this,${isBarangay})"><i class="fas fa-times"></i></button>
+        `;
+      } else if(file.type.startsWith('video/')){
+        div.innerHTML=`
+          <video src="${e.target.result}" class="w-24 h-24 object-cover rounded" controls></video>
+          <button type="button" class="zoom-btn" onclick="openVideoModal('${e.target.result}')"><i class="fas fa-search"></i></button>
+          <button type="button" class="remove-btn" onclick="removeFile(this,${isBarangay})"><i class="fas fa-times"></i></button>
+        `;
+      }
+      if(isBarangay) container.innerHTML=''; 
+      container.appendChild(div);
+      if(isBarangay) document.getElementById('barangayIdUpload-prompt').style.display='none';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  document.getElementById('barangayIdUpload').addEventListener('change',e=>{
+    if(e.target.files.length>0) createPreview(e.target.files[0],document.getElementById('barangayIdPreview'),true);
+  });
+
+  document.getElementById('evidence').addEventListener('change',e=>{
+    const files=Array.from(e.target.files).slice(0,7);
+    const container=document.getElementById('evidencePreview');
+    container.innerHTML='';
+    files.forEach(file=>createPreview(file,container));
+  });
+
+  function removeFile(btn,isBarangay){
+    btn.parentElement.remove();
+    if(isBarangay){
+      document.getElementById('barangayIdUpload').value='';
+      document.getElementById('barangayIdUpload-prompt').style.display='flex';
+    }
+  }
+
+  function openImageModal(src){
+    const modal=document.getElementById('imageModal');
+    document.getElementById('imageModalContent').src=src;
+    modal.classList.remove('hidden'); modal.classList.add('flex');
+  }
+  function openVideoModal(src){
+    const modal=document.getElementById('videoModal');
+    const video=document.getElementById('videoModalContent');
+    video.src=src; video.play();
+    modal.classList.remove('hidden'); modal.classList.add('flex');
+  }
+
+  document.getElementById('imageModal').addEventListener('click',()=>{
+    const modal=document.getElementById('imageModal');
+    document.getElementById('imageModalContent').src='';
+    modal.classList.add('hidden'); modal.classList.remove('flex');
+  });
+  document.getElementById('videoModal').addEventListener('click',()=>{
+    const modal=document.getElementById('videoModal');
+    const video=document.getElementById('videoModalContent');
+    video.pause(); video.src='';
+    modal.classList.add('hidden'); modal.classList.remove('flex');
+  });
+</script>
+
 </body>
 </html>
